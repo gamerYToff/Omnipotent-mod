@@ -9,6 +9,8 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
+import static com.omnipotent.util.KaiaUtil.hasInInventoryKaia;
+
 @Mixin(value = ForgeHooks.class, priority = -Integer.MAX_VALUE)
 public abstract class MixinPlayerDeathHooks {
 
@@ -18,6 +20,11 @@ public abstract class MixinPlayerDeathHooks {
      */
     @Overwrite
     public static boolean onLivingDeath(EntityLivingBase entity, DamageSource src) {
-        return !src.getDamageType().equals("absolute") && MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
+        if(hasInInventoryKaia(entity)){
+            entity.setHealth(Float.MAX_VALUE);
+            entity.isDead = false;
+            return true;
+        }
+        return !src.getDamageType().equals("ABSOLUTE OF CREATOR") && MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
     }
 }
