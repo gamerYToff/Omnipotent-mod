@@ -1,6 +1,7 @@
 package com.omnipotent;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import static com.omnipotent.Omnipotent.kaia;
 
