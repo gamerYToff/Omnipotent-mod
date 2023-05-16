@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+FMLCorePlugin: MixinLoader
+MixinConfigs: mixins.omnipotent.json
+FMLCorePluginContainsFMLMod: false
+TweakClass: org.spongepowered.asm.launch.MixinTweake

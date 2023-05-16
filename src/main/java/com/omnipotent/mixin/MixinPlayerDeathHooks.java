@@ -1,0 +1,23 @@
+package com.omnipotent.mixin;
+
+import com.omnipotent.util.KaiaUtil;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.DamageSource;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+
+@Mixin(value = ForgeHooks.class, priority = -Integer.MAX_VALUE)
+public abstract class MixinPlayerDeathHooks {
+
+    /**
+     * @author
+     * @reason
+     */
+    @Overwrite
+    public static boolean onLivingDeath(EntityLivingBase entity, DamageSource src) {
+        return !src.getDamageType().equals("absolute") && MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
+    }
+}
