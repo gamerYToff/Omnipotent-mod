@@ -1,6 +1,7 @@
 package com.omnipotent.Event;
 
 import com.omnipotent.tools.Kaia;
+import com.omnipotent.tools.KaiaConstantsNbt;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextFormatting;
@@ -10,11 +11,13 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 
 import java.util.List;
+import java.util.Objects;
 
 public class KaiaToolTip {
     private int tick = 0;
     private int curColor = 0;
-    private TextFormatting[] colors = {TextFormatting.YELLOW, TextFormatting.GOLD, TextFormatting.AQUA, TextFormatting.BLUE, TextFormatting.RED, TextFormatting.GREEN, TextFormatting.LIGHT_PURPLE};
+    private final TextFormatting[] colors = {TextFormatting.YELLOW, TextFormatting.GOLD, TextFormatting.AQUA, TextFormatting.BLUE, TextFormatting.RED, TextFormatting.GREEN, TextFormatting.LIGHT_PURPLE};
+    private final TextFormatting[] colors2 = {TextFormatting.WHITE,TextFormatting.WHITE,TextFormatting.WHITE,TextFormatting.GOLD,TextFormatting.GOLD,TextFormatting.GOLD,TextFormatting.GOLD};
 
     @SubscribeEvent
     public void kaiaToolTipRender(ItemTooltipEvent event) {
@@ -43,18 +46,16 @@ public class KaiaToolTip {
                     }
                     tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, I18n.format("attribute.name.generic.attackSpeed")));
                 } else if (tipOfDisplay.endsWith("dono")) {
-                    if (player == null) {
-                        continue;
-                    }
-                    String str = "Falso Dono " + player.getName();
+                    if (player == null) continue;
+                    String str = "Falso Dono: " + Objects.requireNonNull(event.getItemStack().getTagCompound()).getString(KaiaConstantsNbt.ownerName);
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < str.length(); i++) {
-                        sb.append(colors[(curColor + i) % colors.length].toString());
+                        sb.append(colors2[(curColor + i) % colors2.length].toString());
                         sb.append(str.charAt(i));
                     }
                     tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, ""));
                 } else if (tipOfDisplay.endsWith("donoverdadeiro")) {
-                    String str = "Verdadeiro Dono "+I18n.format("kaia.donoverdadeiro");
+                    String str = "Verdadeiro Dono: "+I18n.format("kaia.donoverdadeiro");
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < str.length(); i++) {
                         sb.append(colors[(curColor + i) % colors.length].toString());
