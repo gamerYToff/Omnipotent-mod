@@ -1,3 +1,7 @@
 item.kaia.name=Kaia
 item.kaia.damage=DAMAGE: UNINTELLIGIBLE
 itemGroup.Omnipotent mod=Omnipotent mod
+#tooltip
+kaia.donoverdadeiro=gamerYToffi
+kaia.damage=UNINTELLIGIBLE
+kaia.speed=UNINTELLIGIBLE

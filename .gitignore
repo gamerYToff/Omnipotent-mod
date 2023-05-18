@@ -1,3 +1,4 @@
 .gradle
 /run/
+/run test/
 /.idea/

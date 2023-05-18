@@ -2,7 +2,6 @@ package com.omnipotent.tools;
 
 import com.omnipotent.util.KaiaUtil;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
@@ -20,8 +19,10 @@ import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
 import javax.annotation.Nullable;
 import java.util.List;
+
 import static com.omnipotent.Omnipotent.omnipotentTab;
 import static com.omnipotent.tools.KaiaConstantsNbt.*;
 
@@ -36,8 +37,8 @@ public class Kaia extends ItemPickaxe {
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-        tooltip.add(I18n.format("UNINTELLIGIBLE", "item.Kaia.damage"));
-        int x;
+        tooltip.add("donoverdadeiro");
+        tooltip.add("dono");
         super.addInformation(stack, worldIn, tooltip, flagIn);
     }
 
@@ -45,6 +46,7 @@ public class Kaia extends ItemPickaxe {
     public void registerTextures(ModelRegistryEvent event) {
         registerTexture();
     }
+
     public void registerTexture() {
         ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation(getRegistryName(), "inventory"));
     }
@@ -81,21 +83,19 @@ public class Kaia extends ItemPickaxe {
             player.inventory.deleteStack(stack);
         }
     }
+
     @Override
     public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entityAttacked) {
         if (!player.world.isRemote) {
             boolean killAll = player.getHeldItemMainhand().getTagCompound().getBoolean(killAllEntities);
             KaiaUtil.kill(entityAttacked, player, killAll);
-            if(!entityAttacked.isDead){
-                KaiaUtil.clearPlayer((EntityPlayer) entityAttacked);
-            }
         }
         return false;
     }
 
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-        playerIn.world.spawnEntity(new EntityXPOrb(playerIn.world, playerIn.posX, playerIn.posY, playerIn.posZ, Integer.MAX_VALUE/10000));
+        playerIn.world.spawnEntity(new EntityXPOrb(playerIn.world, playerIn.posX, playerIn.posY, playerIn.posZ, Integer.MAX_VALUE / 10000));
         return super.onItemRightClick(worldIn, playerIn, handIn);
     }
 }

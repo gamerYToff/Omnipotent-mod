@@ -6,12 +6,9 @@ import com.omnipotent.gui.GuiHandler;
 import com.omnipotent.keys.KeyEvent;
 import com.omnipotent.keys.KeyInit;
 import com.omnipotent.tools.Kaia;
+import com.omnipotent.Event.KaiaToolTip;
 import com.omnipotent.util.KaiaUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -20,14 +17,11 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.omnipotent.gui.GuiHandler.GuiIDs.ID_MOD;
 
 @Mod(modid = Omnipotent.MODID, name = Omnipotent.NAME, version = Omnipotent.VERSION)
 @Mod.EventBusSubscriber
@@ -53,6 +47,7 @@ public class Omnipotent {
         MinecraftForge.EVENT_BUS.register(kaia);
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
         MinecraftForge.EVENT_BUS.register(new KeyEvent());
+        MinecraftForge.EVENT_BUS.register(new KaiaToolTip());
     }
 
     @EventHandler
