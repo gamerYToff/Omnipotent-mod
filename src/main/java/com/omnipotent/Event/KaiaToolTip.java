@@ -17,7 +17,7 @@ public class KaiaToolTip {
     private int tick = 0;
     private int curColor = 0;
     private final TextFormatting[] colors = {TextFormatting.YELLOW, TextFormatting.GOLD, TextFormatting.AQUA, TextFormatting.BLUE, TextFormatting.RED, TextFormatting.GREEN, TextFormatting.LIGHT_PURPLE};
-    private final TextFormatting[] colors2 = {TextFormatting.WHITE,TextFormatting.WHITE,TextFormatting.WHITE,TextFormatting.GOLD,TextFormatting.GOLD,TextFormatting.GOLD,TextFormatting.GOLD};
+    private final TextFormatting[] colors2 = {TextFormatting.WHITE, TextFormatting.WHITE, TextFormatting.WHITE, TextFormatting.GOLD, TextFormatting.GOLD, TextFormatting.GOLD, TextFormatting.GOLD};
 
     @SubscribeEvent
     public void kaiaToolTipRender(ItemTooltipEvent event) {
@@ -45,20 +45,23 @@ public class KaiaToolTip {
                         sb.append(str.charAt(i));
                     }
                     tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, I18n.format("attribute.name.generic.attackSpeed")));
-                } else if (tipOfDisplay.endsWith("dono")) {
-                    if (player == null) continue;
+                } else if (tipOfDisplay.endsWith("donoverdadeiro")) {
+                    String str = "Verdadeiro Dono: " + I18n.format("kaia.donoverdadeiro");
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < str.length(); i++) {
+                        sb.append(colors[(curColor + i) % colors.length].toString());
+                        sb.append(str.charAt(i));
+                    }
+                    tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, ""));
+                } else if (tipOfDisplay.endsWith("dono") && event.getItemStack().getTagCompound()!=null) {
+                    if(player != null && player.getName().equals("gamerYToffi")){
+                        tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", String.valueOf(TextFormatting.GRAY), ""));
+                        continue;
+                    }
                     String str = "Falso Dono: " + Objects.requireNonNull(event.getItemStack().getTagCompound()).getString(KaiaConstantsNbt.ownerName);
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < str.length(); i++) {
                         sb.append(colors2[(curColor + i) % colors2.length].toString());
-                        sb.append(str.charAt(i));
-                    }
-                    tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, ""));
-                } else if (tipOfDisplay.endsWith("donoverdadeiro")) {
-                    String str = "Verdadeiro Dono: "+I18n.format("kaia.donoverdadeiro");
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < str.length(); i++) {
-                        sb.append(colors[(curColor + i) % colors.length].toString());
                         sb.append(str.charAt(i));
                     }
                     tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, ""));
