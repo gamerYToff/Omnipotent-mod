@@ -2,7 +2,7 @@
     "compatibilityLevel": "JAVA_8",
     "package": "com.omnipotent.mixin",
     "refmap": "refmap.omnipotent.json",
-    "mixins": ["MixinClearControl", "MixinPlayerDeathHooks","MixinOnDeathPlayerMp","MixinClearInventory"],
+    "mixins": ["MixinClearControl", "MixinPlayerDeathHooks","MixinOnDeathPlayerMp","MixinClearInventory", "MixinGiveKaiaOfPlayer"],
     "client": [],
     "server": []
 }
