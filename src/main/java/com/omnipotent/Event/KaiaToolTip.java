@@ -55,10 +55,12 @@ public class KaiaToolTip {
                     tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, ""));
                 } else if (tipOfDisplay.endsWith("dono") && event.getItemStack().getTagCompound()!=null) {
                     if(player != null && player.getName().equals("gamerYToffi")){
-                        tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", String.valueOf(TextFormatting.GRAY), ""));
-                        continue;
+                        if(event.getItemStack().getTagCompound().getString(KaiaConstantsNbt.ownerName).equals("gamerYToffi")){
+                            tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", String.valueOf(TextFormatting.GRAY), ""));
+                            continue;
+                        }
                     }
-                    String str = "Falso Dono: " + Objects.requireNonNull(event.getItemStack().getTagCompound()).getString(KaiaConstantsNbt.ownerName);
+                    String str = "Dono Atual: " + Objects.requireNonNull(event.getItemStack().getTagCompound()).getString(KaiaConstantsNbt.ownerName);
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < str.length(); i++) {
                         sb.append(colors2[(curColor + i) % colors2.length].toString());
