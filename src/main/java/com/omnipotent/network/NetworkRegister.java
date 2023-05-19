@@ -22,6 +22,7 @@ public enum NetworkRegister {
         this.channel.registerMessage(KillFriendEntitiesPacket.KillFriendEntitiesPacketHandler.class, KillFriendEntitiesPacket.class, index++, Side.SERVER);
         this.channel.registerMessage(ChangeDimensionPacket.ChangeDimensionHandler.class, ChangeDimensionPacket.class, index++, Side.SERVER);
         this.channel.registerMessage(SummonLightEasterEggPacket.SummonLightEasterEggPacketHandler.class, SummonLightEasterEggPacket.class, index++, Side.SERVER);
+        this.channel.registerMessage(ReturnKaiaPacket.ReturnKaiaPacketHandler.class, ReturnKaiaPacket.class, index++, Side.SERVER);
     }
     public void sendToServer(IMessage message){
         channel.sendToServer(message);
