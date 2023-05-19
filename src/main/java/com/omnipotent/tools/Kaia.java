@@ -21,6 +21,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.omnipotent.Omnipotent.omnipotentTab;
@@ -86,7 +87,7 @@ public class Kaia extends ItemPickaxe {
 
     @Override
     public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entityAttacked) {
-        if (!player.world.isRemote) {
+        if (!player.world.isRemote && !KaiaUtil.hasInInventoryKaia(entityAttacked)) {
             boolean killAll = player.getHeldItemMainhand().getTagCompound().getBoolean(killAllEntities);
             KaiaUtil.kill(entityAttacked, player, killAll);
         }
