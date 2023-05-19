@@ -26,6 +26,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.omnipotent.tools.KaiaConstantsNbt.ownerID;
 import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
@@ -88,13 +89,13 @@ public class KaiaUtil {
             entityCreature.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
             entityCreature.setHealth(0.0F);
             entityCreature.onDeath(ds);
-        } else if (entity instanceof EntityPlayer) {
+        } else if (entity instanceof EntityPlayer && !hasInInventoryKaia(entity)) {
             EntityPlayer playerEnemie = (EntityPlayer) entity;
             DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
             playerEnemie.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
             playerEnemie.setHealth(0.0F);
-            if(!playerEnemie.isDead){
-                playerEnemie.attemptTeleport(0,-1000,0);
+            if (!playerEnemie.isDead) {
+                playerEnemie.attemptTeleport(0, -1000, 0);
                 dropAllInventory((EntityPlayer) playerEnemie);
                 playerEnemie.onUpdate();
                 ((EntityPlayer) playerEnemie).onLivingUpdate();
@@ -239,13 +240,15 @@ public class KaiaUtil {
             status.setString(ownerID, entityIn.getUniqueID().toString());
         }
     }
-    public static void dropAllInventory(EntityPlayer player){
+
+    public static void dropAllInventory(EntityPlayer player) {
         for (ItemStack item : player.inventory.mainInventory) {
             player.dropItem(true);
         }
     }
-    public static boolean theLastAttackIsKaia(EntityPlayer player){
-        if(player.getLastDamageSource()!=null && player.getLastDamageSource().damageType.equals(new AbsoluteOfCreatorDamage(player).getDamageType())){
+
+    public static boolean theLastAttackIsKaia(EntityPlayer player) {
+        if (player.getLastDamageSource() != null && player.getLastDamageSource().damageType.equals(new AbsoluteOfCreatorDamage(player).getDamageType())) {
             return true;
         }
         return false;
@@ -257,6 +260,29 @@ public class KaiaUtil {
             ItemStack itemStack = playerInventory.getStackInSlot(i);
             if (!itemStack.isEmpty()) {
                 playerInventory.removeStackFromSlot(i);
+            }
+        }
+    }
+
+    public static void returnKaiaOfOwner(EntityPlayer player) {
+        World world = player.world;
+        String name = player.getName();
+        String uuid = player.getUniqueID().toString();
+        if (!player.world.isRemote) {
+            List<EntityItem> EntityItems = world.loadedEntityList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia && ((EntityItem) entity).getItem().getTagCompound().getString(ownerID).equals(uuid) && ((EntityItem) entity).getItem().getTagCompound().getString(ownerName).equals(name)).map(entity -> ((EntityItem) entity)).collect(Collectors.toList());
+            if (!EntityItems.isEmpty()) {
+                for (EntityItem entityItem : EntityItems) {
+                    ItemStack kaiaStack = entityItem.getItem();
+                    int emptySlot = player.inventory.getFirstEmptyStack();
+                    if (emptySlot != -1) {
+                        player.inventory.setInventorySlotContents(emptySlot, kaiaStack);
+                    } else {
+                        ItemStack item = player.inventory.getStackInSlot(0);
+                        player.dropItem(item, true);
+                        player.inventory.setInventorySlotContents(0, kaiaStack);
+                    }
+                    entityItem.setDead();
+                }
             }
         }
     }
