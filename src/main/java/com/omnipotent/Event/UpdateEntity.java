@@ -1,10 +1,11 @@
 package com.omnipotent.Event;
 
+import com.omnipotent.Omnipotent;
 import com.omnipotent.tools.Kaia;
+import com.omnipotent.util.AbsoluteOfCreatorDamage;
 import com.omnipotent.util.KaiaUtil;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
@@ -13,21 +14,26 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
+import static com.omnipotent.tools.KaiaConstantsNbt.ownerID;
+import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
 import static com.omnipotent.util.KaiaUtil.hasInInventoryKaia;
 
 
 public class UpdateEntity {
+    List<EntityItem> itemsKaiaLoading = new ArrayList<>();
     public static final Set<String> entitiesWithKaia = new HashSet<>();
     public static final Set<String> entitiesFlightKaia = new HashSet<>();
     public static ArrayList<EntityLivingBase> mobsNamedMkll = new ArrayList<>();
@@ -42,12 +48,49 @@ public class UpdateEntity {
         EntityPlayer player = (EntityPlayer) event.getEntityLiving();
         String keyUID = player.getCachedUniqueIdString() + "|" + player.world.isRemote;
         boolean hasKaia = hasInInventoryKaia(player);
-        if (hasKaia) {
-            if (player.getHealth() < 100) {
-                player.isDead = false;
-                player.setHealth(Integer.MAX_VALUE);
-            }
+        if (hasKaia && player.getHealth() < 5) {
+            player.isDead = false;
+            player.setHealth(Float.MAX_VALUE);
         }
+        if (KaiaUtil.theLastAttackIsKaia(player) && !hasKaia && !player.isDead) {
+            player.isDead = true;
+            player.deathTime = 99999;
+            player.onDeath(new AbsoluteOfCreatorDamage(player));
+        }
+//        if (!player.world.isRemote) {
+//            List<EntityItem> entityItemList = player.world.loadedEntityList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia).map(entity -> (EntityItem) entity).collect(Collectors.toList());
+//            entityItemList.removeIf(entityItem -> entityItem.getItem().getItem() instanceof ItemAir);
+//            for (EntityItem item : entityItemList) {
+//                if (!itemsKaiaLoading.contains(item)) {
+//                    itemsKaiaLoading.add(item);
+//                }
+//            }
+//            itemsKaiaLoading.removeIf(entityItem -> entityItem.getItem().getItem() instanceof ItemAir);
+//            for (EntityItem kaiaItem : itemsKaiaLoading) {
+//                int chunkX = kaiaItem.chunkCoordX;
+//                int chunkZ = kaiaItem.chunkCoordZ;
+//                IChunkProvider chunkProvider = player.world.getChunkProvider();
+//                Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
+//            }
+//        }
+
+//            long nanoTime = System.nanoTime();
+//            for (Entity entities : player.world.loadedEntityList) {
+//                if (!(entities instanceof EntityItem)) {
+//                    continue;
+//                }
+//                EntityItem items = (EntityItem) entities;
+//                if (!(items.getItem().getItem() instanceof ItemAir) && !itemsKaiaLoading.contains(items) && items.getItem().getItem() instanceof Kaia) {
+//                    itemsKaiaLoading.add(items);
+//                    int chunkX = items.chunkCoordX;
+//                    int chunkZ = items.chunkCoordZ;
+//                    IChunkProvider chunkProvider = player.world.getChunkProvider();
+//                    Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
+//                }
+//            }
+//            kkkk+=System.nanoTime() - nanoTime;
+//            //KaiaUtil.sendMessageToAllPlayers("tempo" + (System.nanoTime() - nanoTime));
+//        }
         try {
             if (!player.getActivePotionEffects().isEmpty() && !player.world.isRemote && hasInInventoryKaia(player)) {
                 for (PotionEffect effect : player.getActivePotionEffects()) {
@@ -69,6 +112,10 @@ public class UpdateEntity {
         }
 
         if (hasKaia) {
+            if(player.isBurning()){
+                player.extinguish();
+            }
+            //player.extinguish();
             entitiesWithKaia.add(keyUID);
             handleKaiaStateChange(player, true);
         }
@@ -76,7 +123,6 @@ public class UpdateEntity {
             entitiesWithKaia.remove(keyUID);
             handleKaiaStateChange(player, false);
         }
-
     }
 
     private static void defineTimeAndListEasterEggMkll(LivingEvent.LivingUpdateEvent event) {
@@ -149,20 +195,26 @@ public class UpdateEntity {
         ItemStack item = event.getItem().getItem();
         if (!item.hasTagCompound())
             return;
-        String ownerName = item.getTagCompound().getString("ownerName");
-        String ownerID = item.getTagCompound().getString("ownerID");
-        if (!player.getName().equals(ownerName) || !player.getUniqueID().toString().equals(ownerID)) {
+        String ownerNameString = item.getTagCompound().getString(ownerName);
+        String ownerIDString = item.getTagCompound().getString(ownerID);
+        if (!player.getName().equals(ownerNameString) || !player.getUniqueID().toString().equals(ownerIDString)) {
             event.setCanceled(true);
         }
     }
 
     @SubscribeEvent
     public void onEntityItemJoinWorld(EntityJoinWorldEvent event) {
-        if (event.getEntity() instanceof EntityItem) {
+        if (event.getEntity() instanceof EntityItem && !event.getEntity().getEntityWorld().isRemote) {
             EntityItem entityItem = (EntityItem) event.getEntity();
-            if (!entityItem.getItem().isEmpty() && entityItem.getItem().getItem() instanceof Kaia) {
+            if (!entityItem.getItem().isEmpty() && entityItem.getItem().getItem() instanceof Kaia && !entityItem.world.isRemote) {
                 entityItem.setEntityInvulnerable(true);
                 entityItem.setNoPickupDelay();
+                IChunkProvider chunkProvider = entityItem.world.getChunkProvider();
+                ForgeChunkManager.Ticket ticketChunck = ForgeChunkManager.requestTicket(Omnipotent.instance, event.getWorld(), ForgeChunkManager.Type.NORMAL);
+                if (ticketChunck != null) {
+                    Chunk Chunk =entityItem.getEntityWorld().getChunkFromBlockCoords(entityItem.getPosition());
+                    ForgeChunkManager.forceChunk(ticketChunck, Chunk.getPos());
+                }
             }
         }
     }
