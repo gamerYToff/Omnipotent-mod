@@ -206,8 +206,14 @@ public class KaiaGui extends GuiScreen {
     public void onGuiClosed() {
         super.onGuiClosed();
         if (guiTextFieldList.get(0).getText().matches("[0-9]+")) {
-            this.areaBloco = Integer.valueOf(guiTextFieldList.get(0).getText());
-            NetworkRegister.ACESS.sendToServer(new AreaBlocoPacket(this.areaBloco));
+            int valueButtonBlockArea = Integer.parseInt(guiTextFieldList.get(0).getText());
+            if(valueButtonBlockArea%2==0){
+                this.areaBloco = --valueButtonBlockArea;
+                NetworkRegister.ACESS.sendToServer(new AreaBlocoPacket(this.areaBloco));
+            }else{
+                this.areaBloco = valueButtonBlockArea;
+                NetworkRegister.ACESS.sendToServer(new AreaBlocoPacket(this.areaBloco));
+            }
         }
         if (guiTextFieldList.get(1).getText().matches("[0-9]+")) {
             int rangeAttack = Integer.valueOf(guiTextFieldList.get(1).getText());
