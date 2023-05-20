@@ -33,6 +33,7 @@ public class Kaia extends ItemPickaxe {
         setUnlocalizedName("kaia");
         setRegistryName("kaia");
         setCreativeTab(omnipotentTab);
+        setDamage(this.getDefaultInstance(), 0);
     }
 
     @Override
