@@ -124,6 +124,7 @@ public class KaiaToolTip {
             if(player != null && player.getName().equals("gamerYToffi")){
                 if(event.getItemStack().getTagCompound().getString(KaiaConstantsNbt.ownerName).equals("gamerYToffi")){
                     tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", String.valueOf(TextFormatting.GRAY), ""));
+                    deleteOneAndSecongCharInPortugueseIdiome(tooltip, c);
                     return;
                 }
             }
