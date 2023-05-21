@@ -14,8 +14,8 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
@@ -26,6 +26,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.omnipotent.tools.KaiaConstantsNbt.ownerID;
 import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
@@ -38,6 +39,8 @@ public class UpdateEntity {
     public static final Set<String> entitiesFlightKaia = new HashSet<>();
     public static ArrayList<EntityLivingBase> mobsNamedMkll = new ArrayList<>();
     private static Map<EntityLivingBase, Integer> timeTeleportation = new HashMap<>();
+    public static ConcurrentLinkedQueue<ChunkPos> chunkLoadList = new ConcurrentLinkedQueue<>();
+
 
     @SubscribeEvent
     public void updateAbilities(LivingEvent.LivingUpdateEvent event) {
@@ -45,6 +48,7 @@ public class UpdateEntity {
             defineTimeAndListEasterEggMkll(event);
             return;
         }
+        chunkLoadList.forEach(chunk -> KaiaUtil.sendMessageToAllPlayers(String.valueOf(event.getEntity().world.getChunkFromChunkCoords(chunk.x, chunk.z).isLoaded())));
         EntityPlayer player = (EntityPlayer) event.getEntityLiving();
         String keyUID = player.getCachedUniqueIdString() + "|" + player.world.isRemote;
         boolean hasKaia = hasInInventoryKaia(player);
@@ -57,40 +61,6 @@ public class UpdateEntity {
             player.deathTime = 99999;
             player.onDeath(new AbsoluteOfCreatorDamage(player));
         }
-//        if (!player.world.isRemote) {
-//            List<EntityItem> entityItemList = player.world.loadedEntityList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia).map(entity -> (EntityItem) entity).collect(Collectors.toList());
-//            entityItemList.removeIf(entityItem -> entityItem.getItem().getItem() instanceof ItemAir);
-//            for (EntityItem item : entityItemList) {
-//                if (!itemsKaiaLoading.contains(item)) {
-//                    itemsKaiaLoading.add(item);
-//                }
-//            }
-//            itemsKaiaLoading.removeIf(entityItem -> entityItem.getItem().getItem() instanceof ItemAir);
-//            for (EntityItem kaiaItem : itemsKaiaLoading) {
-//                int chunkX = kaiaItem.chunkCoordX;
-//                int chunkZ = kaiaItem.chunkCoordZ;
-//                IChunkProvider chunkProvider = player.world.getChunkProvider();
-//                Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
-//            }
-//        }
-
-//            long nanoTime = System.nanoTime();
-//            for (Entity entities : player.world.loadedEntityList) {
-//                if (!(entities instanceof EntityItem)) {
-//                    continue;
-//                }
-//                EntityItem items = (EntityItem) entities;
-//                if (!(items.getItem().getItem() instanceof ItemAir) && !itemsKaiaLoading.contains(items) && items.getItem().getItem() instanceof Kaia) {
-//                    itemsKaiaLoading.add(items);
-//                    int chunkX = items.chunkCoordX;
-//                    int chunkZ = items.chunkCoordZ;
-//                    IChunkProvider chunkProvider = player.world.getChunkProvider();
-//                    Chunk chunk = chunkProvider.provideChunk(chunkX, chunkZ);
-//                }
-//            }
-//            kkkk+=System.nanoTime() - nanoTime;
-//            //KaiaUtil.sendMessageToAllPlayers("tempo" + (System.nanoTime() - nanoTime));
-//        }
         try {
             if (!player.getActivePotionEffects().isEmpty() && !player.world.isRemote && hasInInventoryKaia(player)) {
                 for (PotionEffect effect : player.getActivePotionEffects()) {
@@ -112,10 +82,9 @@ public class UpdateEntity {
         }
 
         if (hasKaia) {
-            if(player.isBurning()){
+            if (player.isBurning()) {
                 player.extinguish();
             }
-            //player.extinguish();
             entitiesWithKaia.add(keyUID);
             handleKaiaStateChange(player, true);
         }
@@ -124,6 +93,7 @@ public class UpdateEntity {
             handleKaiaStateChange(player, false);
         }
     }
+
 
     private static void defineTimeAndListEasterEggMkll(LivingEvent.LivingUpdateEvent event) {
         EntityLivingBase entity = event.getEntityLiving();
@@ -204,16 +174,21 @@ public class UpdateEntity {
 
     @SubscribeEvent
     public void onEntityItemJoinWorld(EntityJoinWorldEvent event) {
-        if (event.getEntity() instanceof EntityItem && !event.getEntity().getEntityWorld().isRemote) {
+        if (event.getEntity() != null && event.getEntity() instanceof EntityItem && !event.getEntity().getEntityWorld().isRemote) {
             EntityItem entityItem = (EntityItem) event.getEntity();
             if (!entityItem.getItem().isEmpty() && entityItem.getItem().getItem() instanceof Kaia && !entityItem.world.isRemote) {
                 entityItem.setEntityInvulnerable(true);
                 entityItem.setNoPickupDelay();
-                IChunkProvider chunkProvider = entityItem.world.getChunkProvider();
-                ForgeChunkManager.Ticket ticketChunck = ForgeChunkManager.requestTicket(Omnipotent.instance, event.getWorld(), ForgeChunkManager.Type.NORMAL);
+                ForgeChunkManager.Ticket ticketChunck = null;
+                if(Omnipotent.chunkTicker!=null){
+                    ticketChunck = Omnipotent.chunkTicker;
+                }
                 if (ticketChunck != null) {
-                    Chunk Chunk =entityItem.getEntityWorld().getChunkFromBlockCoords(entityItem.getPosition());
-                    ForgeChunkManager.forceChunk(ticketChunck, Chunk.getPos());
+                    Chunk chunk = entityItem.getEntityWorld().getChunkFromBlockCoords(entityItem.getPosition());
+                    ForgeChunkManager.forceChunk(ticketChunck, chunk.getPos());
+                    if (!chunkLoadList.contains(chunk.getPos())){
+                        chunkLoadList.add(chunk.getPos());
+                    }
                 }
             }
         }
@@ -222,33 +197,6 @@ public class UpdateEntity {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void tickUpdate(TickEvent.WorldTickEvent event) {
         easterEggFunctionMkllVerify();
-        /*List<EntityItem> itemsKaiaEntity = event.world.loadedEntityList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia).map(entity -> ((EntityItem) entity)).collect(Collectors.toList());
-        List<EntityItem> entitiesKaiaInWorldUpdate = null;
-        if (itemsKaiaEntity.isEmpty()) {
-            return;
-        }
-        boolean collectByPlayer = false;
-        for (EntityItem entity : itemsKaiaEntity) {
-            if (entity.isDead) {
-                List<EntityPlayer> players = event.world.playerEntities;
-                EntityPlayer playerCollect = null;
-                for (EntityPlayer player : event.world.playerEntities) {
-                    double distance = player.getDistance(player.posX, player.posY, player.posZ);
-                    if (distance < 5.0) {
-                        playerCollect = player;
-                        break;
-                    }
-                }
-                EntityPlayer playerTarget = playerCollect;
-                entitiesKaiaInWorldUpdate = event.world.getLoadedEntityList().stream().filter(entity1 -> entity1 instanceof EntityItem && ((EntityItem) entity1).getItem().getItem() instanceof Kaia && hasInInventoryKaia(playerTarget)).map(entity1 -> ((EntityItem) entity1)).collect(Collectors.toList());
-                if (!entitiesKaiaInWorldUpdate.stream().filter(entityItem -> entityItem.getCachedUniqueIdString().equals(entity.getCachedUniqueIdString())).map(entityItem -> ((String) entityItem.getCachedUniqueIdString())).collect(Collectors.toList()).isEmpty()) {
-                    collectByPlayer = true;
-                }
-                if (!collectByPlayer) {
-                    entity.isDead = false;
-                }
-            }
-        }*/
     }
 
     private static void easterEggFunctionMkllVerify() {
