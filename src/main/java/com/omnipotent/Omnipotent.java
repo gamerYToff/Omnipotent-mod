@@ -9,8 +9,11 @@ import com.omnipotent.tools.Kaia;
 import com.omnipotent.Event.KaiaToolTip;
 import com.omnipotent.util.KaiaUtil;
 import net.minecraft.item.Item;
+import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -57,6 +60,19 @@ public class Omnipotent {
 
     @EventHandler
     public void posinit(FMLPostInitializationEvent event) {
+    }
+    public static ForgeChunkManager.Ticket chunkTicker;
+    @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event) {
+        ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ForgeChunkManager.LoadingCallback() {
+            @Override
+            public void ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world) {
+                for(ForgeChunkManager.Ticket ticket : tickets){
+                    UpdateEntity.chunkLoadList.addAll(ticket.getChunkList());
+                }
+            }
+        });
+        chunkTicker = ForgeChunkManager.requestTicket(instance, event.getWorld(), ForgeChunkManager.Type.NORMAL);
     }
 
     @SubscribeEvent
