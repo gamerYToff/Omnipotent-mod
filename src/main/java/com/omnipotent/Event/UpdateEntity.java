@@ -48,7 +48,6 @@ public class UpdateEntity {
             defineTimeAndListEasterEggMkll(event);
             return;
         }
-        chunkLoadList.forEach(chunk -> KaiaUtil.sendMessageToAllPlayers(String.valueOf(event.getEntity().world.getChunkFromChunkCoords(chunk.x, chunk.z).isLoaded())));
         EntityPlayer player = (EntityPlayer) event.getEntityLiving();
         String keyUID = player.getCachedUniqueIdString() + "|" + player.world.isRemote;
         boolean hasKaia = hasInInventoryKaia(player);
