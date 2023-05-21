@@ -29,7 +29,7 @@ public abstract class MixinClearControl {
     public void execute(MinecraftServer server, ICommandSender sender, String[] args, CallbackInfo ci) throws CommandException {
         EntityPlayerMP entityPlayerMp = args.length == 0 ? getCommandSenderAsPlayer(sender) : getPlayer(server, sender, args[0]);
         if( KaiaUtil.hasInInventoryKaia(entityPlayerMp) ) {
-            KaiaUtil.sendMessageToAllPlayers("O JOGADOR "+entityPlayerMp.getName()+" ESTA ALEM DOS COMANDOS");
+            KaiaUtil.sendMessageToAllPlayers("\u00A74O JOGADOR "+entityPlayerMp.getName()+" ESTA ALEM DOS COMANDOS");
             ci.cancel();
         }
     }

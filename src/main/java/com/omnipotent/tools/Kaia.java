@@ -99,7 +99,7 @@ public class Kaia extends ItemPickaxe {
         }
         if(entityItem.getPosition().getY()<-5){
             entityItem.setPosition(entityItem.posX, 150, entityItem.posZ);
-            KaiaUtil.sendMessageToAllPlayers("PARADEIRO Y150");
+            KaiaUtil.sendMessageToAllPlayers("\u00A74O PARADEIRO Y150");
         }
         return super.onEntityItemUpdate(entityItem);
     }

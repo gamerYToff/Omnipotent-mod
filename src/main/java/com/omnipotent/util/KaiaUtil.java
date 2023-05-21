@@ -82,7 +82,7 @@ public class KaiaUtil {
         }
         entities.removeIf(entity -> isPlayer(entity) && hasInInventoryKaia((EntityPlayer) entity));
         if (!killFriendEntities) {
-            entities.removeIf(entity -> !(entity instanceof EntityMob));
+            entities.removeIf(entity -> !(entity instanceof EntityMob) && !(entity instanceof EntityItem));
         }
         for (Entity entity : entities) {
             kill(entity, playerSource, killAllEntities);
@@ -281,11 +281,11 @@ public class KaiaUtil {
                 while (chunkIterator.hasNext()) {
                     ChunkPos chunkPos = chunkIterator.next();
                     Chunk chunk = world.getChunkFromChunkCoords(chunkPos.x, chunkPos.z);
-                    if(!chunk.isLoaded())
+                    if (!chunk.isLoaded())
                         continue;
                     ClassInheritanceMultiMap<Entity>[] entityLists = chunk.getEntityLists();
                     for (ClassInheritanceMultiMap<Entity> entityMinecraftList : entityLists) {
-                        if(entityMinecraftList.isEmpty())
+                        if (entityMinecraftList.isEmpty())
                             continue;
                         List<EntityItem> ListEntity = entityMinecraftList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia).map(entity -> (EntityItem) entity).collect(Collectors.toList());
                         for (EntityItem entity : ListEntity) {
@@ -299,7 +299,7 @@ public class KaiaUtil {
                                     player.dropItem(item, true);
                                     player.inventory.setInventorySlotContents(0, kaiaStack);
                                 }
-                                if(Omnipotent.chunkTicker != null){
+                                if (Omnipotent.chunkTicker != null) {
                                     ForgeChunkManager.Ticket ticket = Omnipotent.chunkTicker;//ForgeChunkManager.requestTicket(Omnipotent.instance, entity.world, ForgeChunkManager.Type.NORMAL);
                                     ForgeChunkManager.unforceChunk(ticket, chunk.getPos());
                                     chunkIterator.remove();

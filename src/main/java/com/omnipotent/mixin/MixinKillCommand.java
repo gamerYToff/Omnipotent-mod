@@ -29,7 +29,7 @@ public abstract class MixinKillCommand extends CommandBase {
         } else {
             Entity entity = getEntity(server, sender, args[0]);
             if (entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia) {
-                KaiaUtil.sendMessageToAllPlayers("KAIA NAO PODE SER MORTA");
+                KaiaUtil.sendMessageToAllPlayers("\u00A75KAIA NAO PODE SER MORTA");
                 return;
             }
             entity.onKillCommand();
