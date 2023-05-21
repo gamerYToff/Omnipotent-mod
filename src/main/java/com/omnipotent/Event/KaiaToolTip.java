@@ -46,7 +46,7 @@ public class KaiaToolTip {
                     }
                     tooltip.set(c, " " + I18n.format("attribute.modifier.equals.0", sb.toString() + TextFormatting.GRAY, I18n.format("attribute.name.generic.attackSpeed")));
                 } else if (tipOfDisplay.endsWith("donoverdadeiro")) {
-                    String str = "Verdadeiro Dono: " + I18n.format("kaia.donoverdadeiro");
+                    String str = "Verdadeiro Dono: " + I18n.format("gamerYToffi");
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < str.length(); i++) {
                         sb.append(colors[(curColor + i) % colors.length].toString());
