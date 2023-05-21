@@ -1,5 +1,7 @@
 package com.omnipotent.tools;
 
+import com.omnipotent.Event.UpdateEntity;
+import com.omnipotent.Omnipotent;
 import com.omnipotent.util.KaiaUtil;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.util.ITooltipFlag;
@@ -15,13 +17,13 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.omnipotent.Omnipotent.omnipotentTab;
@@ -87,6 +89,18 @@ public class Kaia extends ItemPickaxe {
     }
 
     @Override
+    public boolean onEntityItemUpdate(EntityItem entityItem) {
+        if (entityItem.isDead) {
+            if (UpdateEntity.chunkLoadList.contains(entityItem.world.getChunkFromBlockCoords(entityItem.getPosition()))) {
+                ForgeChunkManager.Ticket ticket = ForgeChunkManager.requestTicket(Omnipotent.instance, entityItem.world, ForgeChunkManager.Type.NORMAL);
+                ForgeChunkManager.unforceChunk(ticket, entityItem.world.getChunkFromBlockCoords(entityItem.getPosition()).getPos());
+                UpdateEntity.chunkLoadList.remove(entityItem.world.getChunkFromBlockCoords(entityItem.getPosition()));
+            }
+        }
+        return super.onEntityItemUpdate(entityItem);
+    }
+
+    @Override
     public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entityAttacked) {
         if (!player.world.isRemote && !KaiaUtil.hasInInventoryKaia(entityAttacked)) {
             boolean killAll = player.getHeldItemMainhand().getTagCompound().getBoolean(killAllEntities);
@@ -97,7 +111,7 @@ public class Kaia extends ItemPickaxe {
 
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-        if(!playerIn.world.isRemote) {
+        if (!playerIn.world.isRemote) {
             playerIn.world.spawnEntity(new EntityXPOrb(playerIn.world, playerIn.posX, playerIn.posY, playerIn.posZ, Integer.MAX_VALUE / 10000));
         }
         return super.onItemRightClick(worldIn, playerIn, handIn);
