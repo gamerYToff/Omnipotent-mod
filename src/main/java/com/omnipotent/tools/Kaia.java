@@ -97,6 +97,10 @@ public class Kaia extends ItemPickaxe {
                 UpdateEntity.chunkLoadList.remove(entityItem.world.getChunkFromBlockCoords(entityItem.getPosition()));
             }
         }
+        if(entityItem.getPosition().getY()<-5){
+            entityItem.setPosition(entityItem.posX, 150, entityItem.posZ);
+            KaiaUtil.sendMessageToAllPlayers("PARADEIRO Y150");
+        }
         return super.onEntityItemUpdate(entityItem);
     }
 
