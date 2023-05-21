@@ -248,10 +248,10 @@ public class KaiaGui extends GuiScreen {
                 }
                 break;
         }
-        for (int c = 0; c < guiButtonList.size(); c++) {
+        /*for (int c = 0; c < guiButtonList.size(); c++) {
             if (button.id == c) {
                 dimensionId = dimensionHash.get(button);
             }
-        }
+        }*/
     }
 }
