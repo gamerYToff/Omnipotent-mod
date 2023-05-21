@@ -1,5 +1,7 @@
 package com.omnipotent.util;
 
+import com.omnipotent.Event.UpdateEntity;
+import com.omnipotent.Omnipotent;
 import com.omnipotent.tools.Kaia;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -14,17 +16,22 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.stats.StatList;
+import net.minecraft.util.ClassInheritanceMultiMap;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -269,21 +276,49 @@ public class KaiaUtil {
         String name = player.getName();
         String uuid = player.getUniqueID().toString();
         if (!player.world.isRemote) {
-            List<EntityItem> EntityItems = world.loadedEntityList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia && ((EntityItem) entity).getItem().getTagCompound().getString(ownerID).equals(uuid) && ((EntityItem) entity).getItem().getTagCompound().getString(ownerName).equals(name)).map(entity -> ((EntityItem) entity)).collect(Collectors.toList());
-            if (!EntityItems.isEmpty()) {
-                for (EntityItem entityItem : EntityItems) {
-                    ItemStack kaiaStack = entityItem.getItem();
-                    int emptySlot = player.inventory.getFirstEmptyStack();
-                    if (emptySlot != -1) {
-                        player.inventory.setInventorySlotContents(emptySlot, kaiaStack);
-                    } else {
-                        ItemStack item = player.inventory.getStackInSlot(0);
-                        player.dropItem(item, true);
-                        player.inventory.setInventorySlotContents(0, kaiaStack);
+            if (!UpdateEntity.chunkLoadList.isEmpty()) {
+                Iterator<ChunkPos> chunkIterator = UpdateEntity.chunkLoadList.iterator();
+                while (chunkIterator.hasNext()) {
+                    ChunkPos chunkPos = chunkIterator.next();
+                    Chunk chunk = world.getChunkFromChunkCoords(chunkPos.x, chunkPos.z);
+                    if(!chunk.isLoaded())
+                        continue;
+                    ClassInheritanceMultiMap<Entity>[] entityLists = chunk.getEntityLists();
+                    for (ClassInheritanceMultiMap<Entity> entityMinecraftList : entityLists) {
+                        if(entityMinecraftList.isEmpty())
+                            continue;
+                        List<EntityItem> ListEntity = entityMinecraftList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia).map(entity -> (EntityItem) entity).collect(Collectors.toList());
+                        for (EntityItem entity : ListEntity) {
+                            ItemStack kaiaStack = ((EntityItem) entity).getItem();
+                            if (kaiaStack.hasTagCompound() && isOwnerOfKaia(kaiaStack, player)) {
+                                int emptySlot = player.inventory.getFirstEmptyStack();
+                                if (emptySlot != -1) {
+                                    player.inventory.setInventorySlotContents(emptySlot, kaiaStack);
+                                } else {
+                                    ItemStack item = player.inventory.getStackInSlot(0);
+                                    player.dropItem(item, true);
+                                    player.inventory.setInventorySlotContents(0, kaiaStack);
+                                }
+                                if(Omnipotent.chunkTicker != null){
+                                    ForgeChunkManager.Ticket ticket = Omnipotent.chunkTicker;//ForgeChunkManager.requestTicket(Omnipotent.instance, entity.world, ForgeChunkManager.Type.NORMAL);
+                                    ForgeChunkManager.unforceChunk(ticket, chunk.getPos());
+                                    chunkIterator.remove();
+                                    entity.setDead();
+                                }
+                            }
+                        }
                     }
-                    entityItem.setDead();
                 }
             }
         }
+    }
+
+    public static boolean isOwnerOfKaia(ItemStack kaiaStack, EntityPlayer player) {
+        String nameOfOwner = kaiaStack.getTagCompound().getString(ownerName);
+        String ownerUUID = kaiaStack.getTagCompound().getString(ownerID);
+        if (nameOfOwner.equals(player.getName()) && ownerUUID.equals(player.getUniqueID().toString())) {
+            return true;
+        }
+        return false;
     }
 }
