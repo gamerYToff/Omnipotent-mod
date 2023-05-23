@@ -1,16 +1,20 @@
 package com.omnipotent;
 
 import com.omnipotent.Event.KaiaEvent;
+import com.omnipotent.Event.KaiaToolTip;
 import com.omnipotent.Event.UpdateEntity;
 import com.omnipotent.gui.GuiHandler;
 import com.omnipotent.keys.KeyEvent;
 import com.omnipotent.keys.KeyInit;
 import com.omnipotent.tools.Kaia;
-import com.omnipotent.Event.KaiaToolTip;
 import com.omnipotent.util.KaiaUtil;
+import net.minecraft.block.BlockChest;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -61,18 +65,16 @@ public class Omnipotent {
     @EventHandler
     public void posinit(FMLPostInitializationEvent event) {
     }
-    public static ForgeChunkManager.Ticket chunkTicker;
+
     @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load event) {
-        ForgeChunkManager.setForcedChunkLoadingCallback(instance, new ForgeChunkManager.LoadingCallback() {
-            @Override
-            public void ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world) {
-                for(ForgeChunkManager.Ticket ticket : tickets){
-                    UpdateEntity.chunkLoadList.addAll(ticket.getChunkList());
-                }
-            }
-        });
-        chunkTicker = ForgeChunkManager.requestTicket(instance, event.getWorld(), ForgeChunkManager.Type.NORMAL);
+    public static void playerJoinWorld(WorldEvent.Load event) {
+        BlockPos pos = new BlockPos(405545454, 0, 28938293);
+        WorldServer world = DimensionManager.getWorld(0);
+        TileEntity chest = world.getTileEntity(pos);
+        if (chest == null)
+            world.setBlockState(pos, Blocks.CHEST.getDefaultState());
+        else if (!(chest.getBlockType() instanceof BlockChest))
+            world.setBlockState(pos, Blocks.CHEST.getDefaultState());
     }
 
     @SubscribeEvent
