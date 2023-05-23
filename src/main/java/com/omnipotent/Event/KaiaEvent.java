@@ -40,54 +40,54 @@ public class KaiaEvent {
 
     @SubscribeEvent
     public static void playerExit(PlayerEvent.PlayerLoggedOutEvent event) throws IOException {
-        File x = new File("aa.txt");
-        x.createNewFile();
-        if (!hasInInventoryKaia(event.player)) {
-            return;
-        }
-        EntityPlayer player = event.player;
-        String namePlayer = player.getName();
-        String uuidPlayer = player.getUniqueID().toString();
-        ItemStack kaiaOfPlayer = getKaiaOfPlayer(player);
-        File file = new File("save per saves.txt");
-        if (!file.exists()) {
-            try {
-                FileWriter writer = new FileWriter(file);
-                writer.write("player \"" + namePlayer + "\", uuid \"" + uuidPlayer + "\", Kaia: \"" + kaiaOfPlayer.toString() + "\"\n");
-                writer.close();
-                file.createNewFile();
-            } catch (IOException e) {
-            }
-            return;
-        }
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            StringBuilder builder = new StringBuilder();
-            String linha;
-            boolean jogadorEncontrado = false;
-            while ((linha = reader.readLine()) != null) {
-                String[] campos = linha.split(", ");
-                String nome = campos[0].substring(campos[0].indexOf("\"") + 1, campos[0].lastIndexOf("\""));
-                String uuid = campos[1].substring(campos[1].indexOf("\"") + 1, campos[1].lastIndexOf("\""));
-                if (nome.equals(namePlayer) && uuid.equals(uuidPlayer)) {
-                    jogadorEncontrado = true;
-                    String novaLinha = "player \"" + namePlayer + "\", uuid \"" + uuidPlayer + "\", Kaia: \"" + kaiaOfPlayer.toString() + "\"";
-                    builder.append(novaLinha).append("\n");
-                } else {
-                    builder.append(linha).append("\n");
-                }
-            }
-            reader.close();
-            if (!jogadorEncontrado) {
-                String novaLinha = "player \"" + namePlayer + "\", uuid \"" + uuidPlayer + "\", Kaia: \"" + kaiaOfPlayer.toString() + "\"";
-                builder.append(novaLinha).append("\n");
-            }
-            FileWriter writer = new FileWriter(file);
-            writer.write(builder.toString());
-            writer.close();
-            file.createNewFile();
-        } catch (IOException e) {
-        }
+//        File x = new File("aa.txt");
+//        x.createNewFile();
+//        if (!hasInInventoryKaia(event.player)) {
+//            return;
+//        }
+//        EntityPlayer player = event.player;
+//        String namePlayer = player.getName();
+//        String uuidPlayer = player.getUniqueID().toString();
+//        ItemStack kaiaOfPlayer = getKaiaOfPlayer(player);
+//        File file = new File("save per saves.txt");
+//        if (!file.exists()) {
+//            try {
+//                FileWriter writer = new FileWriter(file);
+//                writer.write("player \"" + namePlayer + "\", uuid \"" + uuidPlayer + "\", Kaia: \"" + kaiaOfPlayer.toString() + "\"\n");
+//                writer.close();
+//                file.createNewFile();
+//            } catch (IOException e) {
+//            }
+//            return;
+//        }
+//        try {
+//            BufferedReader reader = new BufferedReader(new FileReader(file));
+//            StringBuilder builder = new StringBuilder();
+//            String linha;
+//            boolean jogadorEncontrado = false;
+//            while ((linha = reader.readLine()) != null) {
+//                String[] campos = linha.split(", ");
+//                String nome = campos[0].substring(campos[0].indexOf("\"") + 1, campos[0].lastIndexOf("\""));
+//                String uuid = campos[1].substring(campos[1].indexOf("\"") + 1, campos[1].lastIndexOf("\""));
+//                if (nome.equals(namePlayer) && uuid.equals(uuidPlayer)) {
+//                    jogadorEncontrado = true;
+//                    String novaLinha = "player \"" + namePlayer + "\", uuid \"" + uuidPlayer + "\", Kaia: \"" + kaiaOfPlayer.toString() + "\"";
+//                    builder.append(novaLinha).append("\n");
+//                } else {
+//                    builder.append(linha).append("\n");
+//                }
+//            }
+//            reader.close();
+//            if (!jogadorEncontrado) {
+//                String novaLinha = "player \"" + namePlayer + "\", uuid \"" + uuidPlayer + "\", Kaia: \"" + kaiaOfPlayer.toString() + "\"";
+//                builder.append(novaLinha).append("\n");
+//            }
+//            FileWriter writer = new FileWriter(file);
+//            writer.write(builder.toString());
+//            writer.close();
+//            file.createNewFile();
+//        } catch (IOException e) {
+//        }
     }
 
     @SubscribeEvent(receiveCanceled = true, priority = EventPriority.LOWEST)
