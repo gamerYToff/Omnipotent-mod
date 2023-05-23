@@ -1,5 +1,6 @@
 package com.omnipotent.util;
 
+import com.google.common.collect.Lists;
 import com.omnipotent.Event.UpdateEntity;
 import com.omnipotent.Omnipotent;
 import com.omnipotent.tools.Kaia;
@@ -63,10 +64,12 @@ public class KaiaUtil {
         return result;
     }
 
+    public static List<Class> antiEntity = new ArrayList();
+
     public static void killArea(EntityLivingBase player) {
         EntityPlayer playerSource = (EntityPlayer) player;
         World world = playerSource.world;
-        List<Entity> entities = new ArrayList<>();
+        List<Entity> entities = Lists.newCopyOnWriteArrayList();
         int range = player.getHeldItemMainhand().getTagCompound().getInteger("rangeAttack");
         boolean killAllEntities = player.getHeldItemMainhand().getTagCompound().getBoolean("killAllEntities");
         boolean killFriendEntities = player.getHeldItemMainhand().getTagCompound().getBoolean("killFriendEntities");
@@ -90,12 +93,16 @@ public class KaiaUtil {
     }
 
     public static void kill(Entity entity, EntityPlayer playerSource, boolean killAllEntities) {
-        if (entity instanceof EntityLivingBase) {
+        if (entity instanceof EntityLivingBase && !(entity.world.isRemote || entity.isDead || ((EntityLivingBase) entity).getHealth() == 0.0F)) {
             EntityLivingBase entityCreature = (EntityLivingBase) entity;
             DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
             entityCreature.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
             entityCreature.setHealth(0.0F);
-            entityCreature.onDeath(ds);
+            antiEntity.add(antiEntity.getClass());
+            if (entityCreature.isDead) {
+                entityCreature.onDeath(ds);
+            }
+            antiEntity.remove(antiEntity.getClass());
         } else if (entity instanceof EntityPlayer && !hasInInventoryKaia(entity)) {
             EntityPlayer playerEnemie = (EntityPlayer) entity;
             DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
