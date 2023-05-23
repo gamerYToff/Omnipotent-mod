@@ -191,6 +191,9 @@ public class UpdateEntity {
                 }
             }
         }
+        if(KaiaUtil.antiEntity.contains(event.getEntity().getClass())){
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
