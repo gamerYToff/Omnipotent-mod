@@ -7,4 +7,7 @@ public class KaiaConstantsNbt {
     public static final String killFriendEntities = "killFriendEntities";
     public static final String ownerName = "ownerName";
     public static final String ownerID = "ownerID";
+    public static final String PositionKaiaEntityItem = "PositionKaiaEntityItem";
+    public static final String idLigation = "idLigation";
+
 }
