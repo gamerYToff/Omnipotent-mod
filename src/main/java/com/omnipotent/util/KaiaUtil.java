@@ -1,10 +1,9 @@
 package com.omnipotent.util;
 
 import com.google.common.collect.Lists;
-import com.omnipotent.Event.UpdateEntity;
-import com.omnipotent.Omnipotent;
 import com.omnipotent.tools.Kaia;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -12,29 +11,27 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.stats.StatList;
-import net.minecraft.util.ClassInheritanceMultiMap;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.omnipotent.tools.KaiaConstantsNbt.ownerID;
 import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
@@ -97,12 +94,11 @@ public class KaiaUtil {
             EntityLivingBase entityCreature = (EntityLivingBase) entity;
             DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
             entityCreature.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
-            entityCreature.setHealth(0.0F);
+            entityCreature.attackEntityFrom(ds, Float.MAX_VALUE);
             antiEntity.add(antiEntity.getClass());
-            if (entityCreature.isDead) {
-                entityCreature.onDeath(ds);
-            }
+            entityCreature.onDeath(ds);
             antiEntity.remove(antiEntity.getClass());
+            entityCreature.setHealth(0.0F);
         } else if (entity instanceof EntityPlayer && !hasInInventoryKaia(entity)) {
             EntityPlayer playerEnemie = (EntityPlayer) entity;
             DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
@@ -279,42 +275,38 @@ public class KaiaUtil {
     }
 
     public static void returnKaiaOfOwner(EntityPlayer player) {
-        World world = player.world;
+        World world = DimensionManager.getWorld(0);
         String name = player.getName();
-        String uuid = player.getUniqueID().toString();
-        if (!player.world.isRemote) {
-            if (!UpdateEntity.chunkLoadList.isEmpty()) {
-                Iterator<ChunkPos> chunkIterator = UpdateEntity.chunkLoadList.iterator();
-                while (chunkIterator.hasNext()) {
-                    ChunkPos chunkPos = chunkIterator.next();
-                    Chunk chunk = world.getChunkFromChunkCoords(chunkPos.x, chunkPos.z);
-                    if (!chunk.isLoaded())
-                        continue;
-                    ClassInheritanceMultiMap<Entity>[] entityLists = chunk.getEntityLists();
-                    for (ClassInheritanceMultiMap<Entity> entityMinecraftList : entityLists) {
-                        if (entityMinecraftList.isEmpty())
-                            continue;
-                        List<EntityItem> ListEntity = entityMinecraftList.stream().filter(entity -> entity instanceof EntityItem && ((EntityItem) entity).getItem().getItem() instanceof Kaia).map(entity -> (EntityItem) entity).collect(Collectors.toList());
-                        for (EntityItem entity : ListEntity) {
-                            ItemStack kaiaStack = ((EntityItem) entity).getItem();
-                            if (kaiaStack.hasTagCompound() && isOwnerOfKaia(kaiaStack, player)) {
-                                int emptySlot = player.inventory.getFirstEmptyStack();
-                                if (emptySlot != -1) {
-                                    player.inventory.setInventorySlotContents(emptySlot, kaiaStack);
-                                } else {
-                                    ItemStack item = player.inventory.getStackInSlot(0);
-                                    player.dropItem(item, true);
-                                    player.inventory.setInventorySlotContents(0, kaiaStack);
-                                }
-                                if (Omnipotent.chunkTicker != null) {
-                                    ForgeChunkManager.Ticket ticket = Omnipotent.chunkTicker;//ForgeChunkManager.requestTicket(Omnipotent.instance, entity.world, ForgeChunkManager.Type.NORMAL);
-                                    ForgeChunkManager.unforceChunk(ticket, chunk.getPos());
-                                    chunkIterator.remove();
-                                    entity.setDead();
-                                }
-                            }
-                        }
-                    }
+        String uuidPlayer = player.getUniqueID().toString();
+        BlockPos pos = new BlockPos(405545454, 0, 28938293);
+        TileEntity tileEntity = DimensionManager.getWorld(0).getTileEntity(pos);
+        if (tileEntity == null) {
+            world.destroyBlock(pos, false);
+            world.setBlockState(pos, Blocks.CHEST.getDefaultState());
+            TileEntityChest tileEntityChest = (TileEntityChest) DimensionManager.getWorld(0).getTileEntity(pos);
+            for (int index = 0; index < tileEntityChest.getSizeInventory(); index++) {
+                ItemStack stackInSlot = tileEntityChest.getStackInSlot(index);
+                if (!stackInSlot.isEmpty() && stackInSlot.getItem() instanceof Kaia && isOwnerOfKaia(stackInSlot, player) && !stackInSlot.isEmpty()) {
+                    player.inventory.addItemStackToInventory(stackInSlot);
+                    tileEntityChest.setInventorySlotContents(index, ItemStack.EMPTY);
+                }
+            }
+        } else if (tileEntity.getBlockType() instanceof BlockChest) {
+            TileEntityChest tileEntityChest = (TileEntityChest) world.getTileEntity(pos);
+            for (int index = 0; index < tileEntityChest.getSizeInventory(); index++) {
+                ItemStack stackInSlot = tileEntityChest.getStackInSlot(index);
+                if (!stackInSlot.isEmpty() && stackInSlot.getItem() instanceof Kaia && isOwnerOfKaia(stackInSlot, player) && !stackInSlot.isEmpty()) {
+                    player.inventory.addItemStackToInventory(stackInSlot);
+                    tileEntityChest.setInventorySlotContents(index, ItemStack.EMPTY);
+                }
+            }
+        } else {
+            TileEntityChest tileEntityChest = (TileEntityChest) world.getTileEntity(pos);
+            for (int index = 0; index < tileEntityChest.getSizeInventory(); index++) {
+                ItemStack stackInSlot = tileEntityChest.getStackInSlot(index);
+                if (!stackInSlot.isEmpty() && stackInSlot.getItem() instanceof Kaia && isOwnerOfKaia(stackInSlot, player) && !stackInSlot.isEmpty()) {
+                    player.inventory.addItemStackToInventory(stackInSlot);
+                    tileEntityChest.setInventorySlotContents(index, ItemStack.EMPTY);
                 }
             }
         }
@@ -323,9 +315,6 @@ public class KaiaUtil {
     public static boolean isOwnerOfKaia(ItemStack kaiaStack, EntityPlayer player) {
         String nameOfOwner = kaiaStack.getTagCompound().getString(ownerName);
         String ownerUUID = kaiaStack.getTagCompound().getString(ownerID);
-        if (nameOfOwner.equals(player.getName()) && ownerUUID.equals(player.getUniqueID().toString())) {
-            return true;
-        }
-        return false;
+        return nameOfOwner.equals(player.getName()) && ownerUUID.equals(player.getUniqueID().toString());
     }
 }
