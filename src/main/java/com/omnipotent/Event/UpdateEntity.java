@@ -1,9 +1,9 @@
 package com.omnipotent.Event;
 
-import com.omnipotent.Omnipotent;
 import com.omnipotent.tools.Kaia;
 import com.omnipotent.util.AbsoluteOfCreatorDamage;
 import com.omnipotent.util.KaiaUtil;
+import net.minecraft.block.BlockChest;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,11 +12,12 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -26,11 +27,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static com.omnipotent.tools.KaiaConstantsNbt.ownerID;
-import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
+import static com.omnipotent.tools.KaiaConstantsNbt.*;
 import static com.omnipotent.util.KaiaUtil.hasInInventoryKaia;
+import static com.omnipotent.util.KaiaUtil.isOwnerOfKaia;
 
 
 public class UpdateEntity {
@@ -39,8 +39,6 @@ public class UpdateEntity {
     public static final Set<String> entitiesFlightKaia = new HashSet<>();
     public static ArrayList<EntityLivingBase> mobsNamedMkll = new ArrayList<>();
     private static Map<EntityLivingBase, Integer> timeTeleportation = new HashMap<>();
-    public static ConcurrentLinkedQueue<ChunkPos> chunkLoadList = new ConcurrentLinkedQueue<>();
-
 
     @SubscribeEvent
     public void updateAbilities(LivingEvent.LivingUpdateEvent event) {
@@ -147,7 +145,7 @@ public class UpdateEntity {
     }
 
     @SubscribeEvent
-    public static void cancelTimeItem(ItemExpireEvent event) {
+    public void cancelTimeItem(ItemExpireEvent event) {
         if (event.getEntityItem().getItem().getItem() instanceof Kaia) {
             event.setCanceled(true);
         }
@@ -155,7 +153,7 @@ public class UpdateEntity {
 
     @SubscribeEvent()
     public void entityPickupKaia(EntityItemPickupEvent event) {
-        if (event.getEntityPlayer().world.isRemote)
+        if (event.getEntityPlayer().world.isRemote || event.getItem().world.isRemote)
             return;
         if (!(event.getEntity() instanceof EntityPlayer) || !(event.getItem().getItem().getItem() instanceof Kaia))
             return;
@@ -169,30 +167,57 @@ public class UpdateEntity {
         if (!player.getName().equals(ownerNameString) || !player.getUniqueID().toString().equals(ownerIDString)) {
             event.setCanceled(true);
         }
+        BlockPos pos = new BlockPos(405545454, 0, 28938293);
+        TileEntity tileEntity = DimensionManager.getWorld(0).getTileEntity(pos);
+        ItemStack kaiaItem = event.getItem().getItem();
+        if (tileEntity != null && tileEntity.getBlockType() instanceof BlockChest) {
+            TileEntityChest chest = (TileEntityChest) tileEntity;
+            for (int index = 0; index < chest.getSizeInventory(); index++) {
+                ItemStack stackInSlot = chest.getStackInSlot(index);
+                if (!stackInSlot.isEmpty() && stackInSlot.getItem() instanceof Kaia && isOwnerOfKaia(kaiaItem, player)) {
+                    chest.setInventorySlotContents(index, ItemStack.EMPTY);
+                    break;
+                }
+            }
+        }
     }
 
     @SubscribeEvent
     public void onEntityItemJoinWorld(EntityJoinWorldEvent event) {
         if (event.getEntity() != null && event.getEntity() instanceof EntityItem && !event.getEntity().getEntityWorld().isRemote) {
             EntityItem entityItem = (EntityItem) event.getEntity();
-            if (!entityItem.getItem().isEmpty() && entityItem.getItem().getItem() instanceof Kaia && !entityItem.world.isRemote) {
+            if (!entityItem.getItem().isEmpty() && entityItem.getItem().getItem() instanceof Kaia) {
                 entityItem.setEntityInvulnerable(true);
                 entityItem.setNoPickupDelay();
-                ForgeChunkManager.Ticket ticketChunck = null;
-                if(Omnipotent.chunkTicker!=null){
-                    ticketChunck = Omnipotent.chunkTicker;
-                }
-                if (ticketChunck != null) {
-                    Chunk chunk = entityItem.getEntityWorld().getChunkFromBlockCoords(entityItem.getPosition());
-                    ForgeChunkManager.forceChunk(ticketChunck, chunk.getPos());
-                    if (!chunkLoadList.contains(chunk.getPos())){
-                        chunkLoadList.add(chunk.getPos());
+                if (entityItem.getItem().hasTagCompound() && entityItem.getItem().getTagCompound().hasKey(ownerID) && entityItem.getItem().getTagCompound().hasKey(ownerName)) {
+                    BlockPos blockPos = new BlockPos(405545454, 0, 28938293);
+                    TileEntity tileEntity = DimensionManager.getWorld(0).getTileEntity(blockPos);
+                    ItemStack kaiaItem = entityItem.getItem();
+                    boolean noExistInChest = true;
+                    if (tileEntity != null && tileEntity.getBlockType() instanceof BlockChest) {
+                        TileEntityChest chest = (TileEntityChest) tileEntity;
+                        for (int index = 0; index < chest.getSizeInventory(); index++) {
+                            ItemStack stackInSlot = chest.getStackInSlot(index);
+                            if (!stackInSlot.isEmpty() && stackInSlot.getItem() instanceof Kaia && kaiaItem.getTagCompound().getLong(idLigation) == stackInSlot.getTagCompound().getLong(idLigation)) {
+                                noExistInChest = false;
+                                break;
+                            }
+                        }
+                        if (noExistInChest) {
+                            for (int index = 0; index < chest.getSizeInventory(); index++) {
+                                ItemStack stackInSlot = chest.getStackInSlot(index);
+                                if (stackInSlot.isEmpty() && !(stackInSlot.getItem() instanceof Kaia)) {
+                                    chest.setInventorySlotContents(index, kaiaItem);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
-        if(KaiaUtil.antiEntity.contains(event.getEntity().getClass())){
-            event.setCanceled(true);
+            if (KaiaUtil.antiEntity.contains(event.getEntity().getClass())) {
+                event.setCanceled(true);
+            }
         }
     }
 
