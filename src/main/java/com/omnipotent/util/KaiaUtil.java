@@ -15,6 +15,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
@@ -37,31 +38,21 @@ import static com.omnipotent.tools.KaiaConstantsNbt.ownerID;
 import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
 
 public class KaiaUtil {
-    public static boolean isPlayer(Entity entity) {
-        if (entity instanceof EntityPlayer) {
-            return true;
-        }
-        return false;
-    }
-
+    public static List<Class> antiEntity = new ArrayList();
     public static boolean hasInInventoryKaia(Entity entity) {
         if (!isPlayer(entity)) {
             return false;
         }
         EntityPlayer player = (EntityPlayer) entity;
-        boolean result = false;
         if (player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof Kaia)
             return true;
         for (ItemStack slot : player.inventory.mainInventory) {
             if (slot.getItem() instanceof Kaia) {
-                result = true;
-                break;
+                return true;
             }
         }
-        return result;
+        return false;
     }
-
-    public static List<Class> antiEntity = new ArrayList();
 
     public static void killArea(EntityLivingBase player) {
         EntityPlayer playerSource = (EntityPlayer) player;
@@ -118,9 +109,7 @@ public class KaiaUtil {
     }
 
     public static boolean withKaiaMainHand(EntityPlayer trueSource) {
-        if (trueSource.getHeldItemMainhand().getItem() instanceof Kaia)
-            return true;
-        return false;
+        return trueSource.getHeldItemMainhand().getItem() instanceof Kaia;
     }
 
     /**
@@ -150,45 +139,46 @@ public class KaiaUtil {
         }
     }
 
-    public static boolean dropsOfBlockIsEmpty(EntityPlayerMP player, BlockPos pos) {
-        IBlockState state = player.world.getBlockState(pos);
-        Block block = state.getBlock();
-        NonNullList<ItemStack> drops = NonNullList.create();
-        block.getDrops(drops, player.world, pos, state, 0);
-        if (drops.isEmpty()) {
-            return true;
+    public static void decideBreakBlock(EntityPlayerMP player, BlockPos pos) {
+        if (getKaiaInMainHand(player).getTagCompound().getInteger("areaBloco") > 1) {
+            int areaBlock = getKaiaInMainHand(player).getTagCompound().getInteger("areaBloco");
+            if (!player.world.isRemote && !player.capabilities.isCreativeMode && withKaiaMainHand(player)) {
+                if (areaBlock % 2 != 0) {
+                    breakBlocksInArea(areaBlock, player, pos);
+                }
+            }
+        } else {
+            if (blockDropsIsEmpty(player, pos)) {
+                breakBlockIfDropsIsEmpty(player, pos);
+            } else {
+                player.world.getBlockState(pos).getBlock().harvestBlock(player.world, player, pos, player.world.getBlockState(pos), null, player.getHeldItemMainhand());
+                player.world.destroyBlock(pos, false);
+            }
         }
-        return false;
     }
 
-    public static void breakBlocksArea(int areaBlock, EntityPlayer player, BlockPos centerPos) {
-        int halfArea = areaBlock / 2;
-        World world = player.getEntityWorld();
-        for (int i = -halfArea; i <= halfArea; i++) {
-            for (int j = -halfArea; j <= halfArea; j++) {
-                for (int k = -halfArea; k <= halfArea; k++) {
-                    BlockPos pos2 = centerPos.add(i, j, k);
-                    IBlockState state = world.getBlockState(pos2);
-                    Block block = state.getBlock();
-                    if (!block.isAir(state, world, pos2)) {
-                        if (dropsOfBlockIsEmpty((EntityPlayerMP) player, pos2)) {
-                            breakOneBlock((EntityPlayerMP) player, pos2);
+    public static void breakBlocksInArea(int areaBlock, EntityPlayer player, BlockPos centerPos) {
+        World world = player.world;
+        NBTTagList enchList = getKaiaOfPlayer(player).getTagCompound().getTagList("ench", 10);
+        int startX = centerPos.getX() - areaBlock / 2;
+        int endX = centerPos.getX() + areaBlock / 2;
+        int startZ = centerPos.getZ() - areaBlock / 2;
+        int endZ = centerPos.getZ() + areaBlock / 2;
+        int startY = centerPos.getY() - areaBlock / 2;
+        int endY = centerPos.getY() + areaBlock / 2;
+        if (blockDropsIsEmpty((EntityPlayerMP) player, centerPos))
+            breakBlockIfDropsIsEmpty((EntityPlayerMP) player, centerPos);
+        else
+            world.destroyBlock(centerPos, true);
+        for (int x = startX; x <= endX; x++) {
+            for (int z = startZ; z <= endZ; z++) {
+                for (int y = startY; y <= endY; y++) {
+                    BlockPos blockPos = new BlockPos(x, y, z);
+                    if (!world.isAirBlock(blockPos)) {
+                        if (blockDropsIsEmpty((EntityPlayerMP) player, blockPos)) {
+                            breakBlockIfDropsIsEmpty((EntityPlayerMP) player, blockPos);
                         } else {
-                            block.harvestBlock(world, player, pos2, state, null, player.getHeldItemMainhand());
-                            world.destroyBlock(pos2, false);
-                        }
-                    }
-                    for (int l = 1; l < areaBlock; l++) {
-                        pos2 = centerPos.add(i, j + l, k);
-                        state = world.getBlockState(pos2);
-                        block = state.getBlock();
-                        if (!block.isAir(state, world, pos2)) {
-                            if (dropsOfBlockIsEmpty((EntityPlayerMP) player, pos2)) {
-                                breakOneBlock((EntityPlayerMP) player, pos2);
-                            } else {
-                                block.harvestBlock(world, player, pos2, state, null, player.getHeldItemMainhand());
-                                world.destroyBlock(pos2, false);
-                            }
+                            world.destroyBlock(blockPos, true);
                         }
                     }
                 }
@@ -196,7 +186,7 @@ public class KaiaUtil {
         }
     }
 
-    public static void breakOneBlock(EntityPlayerMP player, BlockPos pos) {
+    public static void breakBlockIfDropsIsEmpty(EntityPlayerMP player, BlockPos pos) {
         IBlockState state = player.world.getBlockState(pos);
         Block block = state.getBlock();
         NonNullList<ItemStack> drops = NonNullList.create();
@@ -210,22 +200,12 @@ public class KaiaUtil {
         player.world.destroyBlock(pos, false);
     }
 
-    public static void decideBreakBlock(EntityPlayerMP player, BlockPos pos) {
-        if (player.getHeldItemMainhand().getTagCompound().getInteger("areaBloco") > 1) {
-            int areaBlock = player.getHeldItemMainhand().getTagCompound().getInteger("areaBloco");
-            if (!player.world.isRemote && !player.capabilities.isCreativeMode && withKaiaMainHand(player)) {
-                if (areaBlock % 2 != 0) {
-                    breakBlocksArea(areaBlock, player, pos);
-                }
-            }
-        } else {
-            if (dropsOfBlockIsEmpty(player, pos)) {
-                breakOneBlock(player, pos);
-            } else {
-                player.world.getBlockState(pos).getBlock().harvestBlock(player.world, player, pos, player.world.getBlockState(pos), null, player.getHeldItemMainhand());
-                player.world.destroyBlock(pos, false);
-            }
-        }
+    public static boolean blockDropsIsEmpty(EntityPlayerMP player, BlockPos pos) {
+        IBlockState state = player.world.getBlockState(pos);
+        Block block = state.getBlock();
+        NonNullList<ItemStack> drops = NonNullList.create();
+        block.getDrops(drops, player.world, pos, state, 0);
+        return drops.isEmpty();
     }
 
     public static void dropKaiaOfInventory(ItemStack stack, EntityPlayer player) {
@@ -258,10 +238,7 @@ public class KaiaUtil {
     }
 
     public static boolean theLastAttackIsKaia(EntityPlayer player) {
-        if (player.getLastDamageSource() != null && player.getLastDamageSource().damageType.equals(new AbsoluteOfCreatorDamage(player).getDamageType())) {
-            return true;
-        }
-        return false;
+        return player.getLastDamageSource() != null && player.getLastDamageSource().damageType.equals(new AbsoluteOfCreatorDamage(player).getDamageType());
     }
 
     public static void clearPlayer(EntityPlayer player) {
@@ -312,9 +289,20 @@ public class KaiaUtil {
         }
     }
 
+    public static ItemStack getKaiaInMainHand(EntityPlayer player) {
+        return player.getHeldItemMainhand();
+    }
+
     public static boolean isOwnerOfKaia(ItemStack kaiaStack, EntityPlayer player) {
         String nameOfOwner = kaiaStack.getTagCompound().getString(ownerName);
         String ownerUUID = kaiaStack.getTagCompound().getString(ownerID);
         return nameOfOwner.equals(player.getName()) && ownerUUID.equals(player.getUniqueID().toString());
+    }
+
+    public static boolean isPlayer(Entity entity) {
+        if (entity instanceof EntityPlayer) {
+            return true;
+        }
+        return false;
     }
 }
