@@ -70,11 +70,13 @@ public class Omnipotent {
     public static void playerJoinWorld(WorldEvent.Load event) {
         BlockPos pos = new BlockPos(405545454, 0, 28938293);
         WorldServer world = DimensionManager.getWorld(0);
-        TileEntity chest = world.getTileEntity(pos);
-        if (chest == null)
-            world.setBlockState(pos, Blocks.CHEST.getDefaultState());
-        else if (!(chest.getBlockType() instanceof BlockChest))
-            world.setBlockState(pos, Blocks.CHEST.getDefaultState());
+        if (world != null) {
+            TileEntity chest = world.getTileEntity(pos);
+            if (chest == null)
+                world.setBlockState(pos, Blocks.CHEST.getDefaultState());
+            else if (!(chest.getBlockType() instanceof BlockChest))
+                world.setBlockState(pos, Blocks.CHEST.getDefaultState());
+        }
     }
 
     @SubscribeEvent

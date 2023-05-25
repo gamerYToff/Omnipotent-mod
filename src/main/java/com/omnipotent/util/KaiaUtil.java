@@ -36,8 +36,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.omnipotent.tools.KaiaConstantsNbt.ownerID;
-import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
+import static com.omnipotent.tools.KaiaConstantsNbt.*;
 
 public class KaiaUtil {
     public static List<Class> antiEntity = new ArrayList();
@@ -116,8 +115,8 @@ public class KaiaUtil {
     }
 
     public static void decideBreakBlock(EntityPlayerMP player, BlockPos pos) {
-        if (getKaiaInMainHand(player).getTagCompound().getInteger("areaBloco") > 1) {
-            int areaBlock = getKaiaInMainHand(player).getTagCompound().getInteger("areaBloco");
+        if (getKaiaInMainHand(player).getTagCompound().getInteger(blockBreakArea) > 1) {
+            int areaBlock = getKaiaInMainHand(player).getTagCompound().getInteger(blockBreakArea);
             if (!player.world.isRemote && !player.capabilities.isCreativeMode && withKaiaMainHand(player)) {
                 if (areaBlock % 2 != 0) {
                     breakBlocksInArea(areaBlock, player, pos);
@@ -224,10 +223,11 @@ public class KaiaUtil {
 
     public static void returnKaiaOfOwner(EntityPlayer player) {
         World world = DimensionManager.getWorld(0);
+        if(world == null) return;
         String name = player.getName();
         String uuidPlayer = player.getUniqueID().toString();
         BlockPos pos = new BlockPos(405545454, 0, 28938293);
-        TileEntity tileEntity = DimensionManager.getWorld(0).getTileEntity(pos);
+        TileEntity tileEntity = world.getTileEntity(pos);
         if (tileEntity == null) {
             world.destroyBlock(pos, false);
             world.setBlockState(pos, Blocks.CHEST.getDefaultState());

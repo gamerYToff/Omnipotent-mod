@@ -20,6 +20,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.DimensionManager;
@@ -132,7 +133,9 @@ public class Kaia extends ItemPickaxe {
                 kaiaItem.getTagCompound().setIntArray(PositionKaiaEntityItem, new int[]{entityItem.getPosition().getX(), entityItem.getPosition().getY(), entityItem.getPosition().getZ()});
         }
         BlockPos pos = new BlockPos(405545454, 0, 28938293);
-        TileEntityChest chest = (TileEntityChest) DimensionManager.getWorld(0).getTileEntity(pos);
+        WorldServer worldServer = DimensionManager.getWorld(0);
+        if (worldServer== null) return super.onEntityItemUpdate(entityItem);;
+        TileEntityChest chest = (TileEntityChest) worldServer.getTileEntity(pos);
         for (int index = 0; index < chest.getSizeInventory(); index++) {
             ItemStack stackInSlot = chest.getStackInSlot(index);
             if (!stackInSlot.isEmpty() && entityItem.getItem().getTagCompound().getLong(idLigation) == stackInSlot.getTagCompound().getLong(idLigation)) {
