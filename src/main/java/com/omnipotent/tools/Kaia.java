@@ -3,10 +3,15 @@ package com.omnipotent.tools;
 import com.omnipotent.util.KaiaUtil;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Enchantments;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -24,7 +29,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static com.omnipotent.Omnipotent.omnipotentTab;
@@ -68,6 +75,11 @@ public class Kaia extends ItemPickaxe {
         String ownerName = stack.getTagCompound().getString(KaiaConstantsNbt.ownerName);
         String ownerID = stack.getTagCompound().getString(KaiaConstantsNbt.ownerID);
         Random x = new Random();
+        if(!stack.getTagCompound().hasKey("ench")){
+            Map<Enchantment, Integer> enchantments = new HashMap();
+            enchantments.put(Enchantments.FORTUNE, 64);
+            EnchantmentHelper.setEnchantments(enchantments, stack);
+        }
         if (!stack.getTagCompound().hasKey(blockBreakArea) || stack.getTagCompound().getInteger(blockBreakArea) < 1) {
             NBTTagCompound status = stack.getTagCompound();
             status.setInteger(blockBreakArea, 1);
