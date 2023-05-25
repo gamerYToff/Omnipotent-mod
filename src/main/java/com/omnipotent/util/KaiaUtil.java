@@ -159,7 +159,6 @@ public class KaiaUtil {
 
     public static void breakBlocksInArea(int areaBlock, EntityPlayer player, BlockPos centerPos) {
         World world = player.world;
-        NBTTagList enchList = getKaiaOfPlayer(player).getTagCompound().getTagList("ench", 10);
         int startX = centerPos.getX() - areaBlock / 2;
         int endX = centerPos.getX() + areaBlock / 2;
         int startZ = centerPos.getZ() - areaBlock / 2;
