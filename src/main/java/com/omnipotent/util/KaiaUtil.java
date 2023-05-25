@@ -5,17 +5,19 @@ import com.omnipotent.tools.Kaia;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Enchantments;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
@@ -39,6 +41,7 @@ import static com.omnipotent.tools.KaiaConstantsNbt.ownerName;
 
 public class KaiaUtil {
     public static List<Class> antiEntity = new ArrayList();
+
     public static boolean hasInInventoryKaia(Entity entity) {
         if (!isPlayer(entity)) {
             return false;
@@ -112,33 +115,6 @@ public class KaiaUtil {
         return trueSource.getHeldItemMainhand().getItem() instanceof Kaia;
     }
 
-    /**
-     * este método retorna null caso o jogador não tenha ele, deve ser usado apenas quando se tiver garantia que o jogador
-     * tem o item Kaia e quando for necessario pegar uma Kaia que esteja na mainHand antenção este método pode gerar incompatiblidade é preferivel
-     * sempre usar o método player.getHeldItemMainhand() ao invés dele.
-     *
-     * @param player
-     * @return
-     */
-    public static ItemStack getKaiaOfPlayer(EntityPlayer player) {
-        if (player.inventory.offHandInventory.get(0).getItem() instanceof Kaia)
-            return player.inventory.offHandInventory.get(0).getItem().getDefaultInstance();
-        for (ItemStack item : player.inventory.mainInventory) {
-            if (item.getItem() instanceof Kaia) {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    public static void sendMessageToAllPlayers(String message) {
-        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
-        List<EntityPlayerMP> players = server.getPlayerList().getPlayers();
-        for (EntityPlayerMP player : players) {
-            player.sendMessage(new TextComponentString(message));
-        }
-    }
-
     public static void decideBreakBlock(EntityPlayerMP player, BlockPos pos) {
         if (getKaiaInMainHand(player).getTagCompound().getInteger("areaBloco") > 1) {
             int areaBlock = getKaiaInMainHand(player).getTagCompound().getInteger("areaBloco");
@@ -148,12 +124,7 @@ public class KaiaUtil {
                 }
             }
         } else {
-            if (blockDropsIsEmpty(player, pos)) {
-                breakBlockIfDropsIsEmpty(player, pos);
-            } else {
-                player.world.getBlockState(pos).getBlock().harvestBlock(player.world, player, pos, player.world.getBlockState(pos), null, player.getHeldItemMainhand());
-                player.world.destroyBlock(pos, false);
-            }
+            player.world.spawnEntity(new EntityXPOrb(player.world, pos.getX()+0.5, pos.getY()+0.5,pos.getZ()+0.5, (int) breakBlockIfDropsIsEmpty(player, pos)));
         }
     }
 
@@ -165,46 +136,47 @@ public class KaiaUtil {
         int endZ = centerPos.getZ() + areaBlock / 2;
         int startY = centerPos.getY() - areaBlock / 2;
         int endY = centerPos.getY() + areaBlock / 2;
-        if (blockDropsIsEmpty((EntityPlayerMP) player, centerPos))
-            breakBlockIfDropsIsEmpty((EntityPlayerMP) player, centerPos);
-        else
-            world.destroyBlock(centerPos, true);
+        float xp = 0f;
+        xp+=breakBlockIfDropsIsEmpty((EntityPlayerMP) player, centerPos);
         for (int x = startX; x <= endX; x++) {
             for (int z = startZ; z <= endZ; z++) {
                 for (int y = startY; y <= endY; y++) {
                     BlockPos blockPos = new BlockPos(x, y, z);
                     if (!world.isAirBlock(blockPos)) {
-                        if (blockDropsIsEmpty((EntityPlayerMP) player, blockPos)) {
-                            breakBlockIfDropsIsEmpty((EntityPlayerMP) player, blockPos);
-                        } else {
-                            world.destroyBlock(blockPos, true);
-                        }
+                        xp+=breakBlockIfDropsIsEmpty((EntityPlayerMP) player, blockPos);
                     }
                 }
             }
         }
+        world.spawnEntity(new EntityXPOrb(player.world, centerPos.getX()+0.5, centerPos.getY()+0.5, centerPos.getZ()+0.5, (int) xp));
     }
 
-    public static void breakBlockIfDropsIsEmpty(EntityPlayerMP player, BlockPos pos) {
+    public static float breakBlockIfDropsIsEmpty(EntityPlayerMP player, BlockPos pos) {
         IBlockState state = player.world.getBlockState(pos);
         Block block = state.getBlock();
         NonNullList<ItemStack> drops = NonNullList.create();
-        block.getDrops(drops, player.world, pos, state, 0);
-        drops.add(block.getPickBlock(state, player.rayTrace(0.0f, 0.0f), player.world, pos, player));
+        int enchLevelFortune = EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, getKaiaInMainHand(player));
+        Float xp = 0f;
+        block.getDrops(drops, player.world, pos, state, enchLevelFortune);
+        if (drops.isEmpty()) {
+            drops.add(block.getPickBlock(state, player.rayTrace(0.0f, 0.0f), player.world, pos, player));
+        }
         for (ItemStack dropStack : drops) {
             EntityItem item = new EntityItem(player.world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, dropStack);
             player.world.spawnEntity(item);
         }
+        xp+=block.getExpDrop(state, player.world, pos, enchLevelFortune);
         player.addStat(StatList.getBlockStats(block));
         player.world.destroyBlock(pos, false);
+        return xp;
     }
 
-    public static boolean blockDropsIsEmpty(EntityPlayerMP player, BlockPos pos) {
-        IBlockState state = player.world.getBlockState(pos);
-        Block block = state.getBlock();
-        NonNullList<ItemStack> drops = NonNullList.create();
-        block.getDrops(drops, player.world, pos, state, 0);
-        return drops.isEmpty();
+    public static void sendMessageToAllPlayers(String message) {
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        List<EntityPlayerMP> players = server.getPlayerList().getPlayers();
+        for (EntityPlayerMP player : players) {
+            player.sendMessage(new TextComponentString(message));
+        }
     }
 
     public static void dropKaiaOfInventory(ItemStack stack, EntityPlayer player) {
