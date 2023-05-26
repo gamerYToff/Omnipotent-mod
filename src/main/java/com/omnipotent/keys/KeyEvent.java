@@ -13,11 +13,11 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import static com.omnipotent.Omnipotent.channel;
 import static com.omnipotent.gui.GuiHandler.GuiIDs.ID_MOD;
 
 public class KeyEvent {
     @SubscribeEvent
-    @SideOnly(Side.CLIENT)
     public void keyPressed(InputEvent.KeyInputEvent event) {
         EntityPlayer player = Minecraft.getMinecraft().player;
         if (KeyInit.keyReturnKaia.isPressed()) {

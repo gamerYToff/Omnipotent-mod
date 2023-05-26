@@ -17,6 +17,7 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
@@ -157,7 +158,6 @@ public class UpdateEntity {
             return;
         if (!(event.getEntity() instanceof EntityPlayer) || !(event.getItem().getItem().getItem() instanceof Kaia))
             return;
-
         EntityPlayer player = event.getEntityPlayer();
         ItemStack item = event.getItem().getItem();
         if (!item.hasTagCompound())
@@ -168,7 +168,9 @@ public class UpdateEntity {
             event.setCanceled(true);
         }
         BlockPos pos = new BlockPos(405545454, 0, 28938293);
-        TileEntity tileEntity = DimensionManager.getWorld(0).getTileEntity(pos);
+        WorldServer worldServer = DimensionManager.getWorld(0);
+        if(worldServer==null) return;
+        TileEntity tileEntity = worldServer.getTileEntity(pos);
         ItemStack kaiaItem = event.getItem().getItem();
         if (tileEntity != null && tileEntity.getBlockType() instanceof BlockChest) {
             TileEntityChest chest = (TileEntityChest) tileEntity;

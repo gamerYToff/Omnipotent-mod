@@ -15,7 +15,6 @@ public class ReturnKaiaPacket implements IMessage {
     }
     @Override
     public void fromBytes(ByteBuf buf) {
-
     }
 
     @Override
@@ -23,8 +22,6 @@ public class ReturnKaiaPacket implements IMessage {
 
     }
     public static class ReturnKaiaPacketHandler implements IMessageHandler<ReturnKaiaPacket, IMessage>{
-
-
         @Override
         public IMessage onMessage(ReturnKaiaPacket message, MessageContext ctx) {
             KaiaUtil.returnKaiaOfOwner(ctx.getServerHandler().player);

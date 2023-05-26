@@ -7,10 +7,16 @@ import net.minecraft.block.BlockChest;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.monster.EntityGolem;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.monster.EntitySnowman;
+import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.passive.EntityBat;
+import net.minecraft.entity.passive.EntitySquid;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -75,7 +81,7 @@ public class KaiaUtil {
         }
         entities.removeIf(entity -> isPlayer(entity) && hasInInventoryKaia((EntityPlayer) entity));
         if (!killFriendEntities) {
-            entities.removeIf(entity -> !(entity instanceof EntityMob) && !(entity instanceof EntityItem));
+            entities.removeIf(entity -> entity instanceof EntityBat || entity instanceof EntitySquid || entity instanceof EntityAgeable || entity instanceof EntityAnimal || entity instanceof EntitySnowman || entity instanceof EntityGolem);
         }
         for (Entity entity : entities) {
             kill(entity, playerSource, killAllEntities);

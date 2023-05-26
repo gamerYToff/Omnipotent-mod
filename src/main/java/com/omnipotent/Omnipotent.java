@@ -6,6 +6,8 @@ import com.omnipotent.Event.UpdateEntity;
 import com.omnipotent.gui.GuiHandler;
 import com.omnipotent.keys.KeyEvent;
 import com.omnipotent.keys.KeyInit;
+import com.omnipotent.network.NetworkRegister;
+import com.omnipotent.network.PacketInicialization;
 import com.omnipotent.tools.Kaia;
 import com.omnipotent.util.KaiaUtil;
 import net.minecraft.block.BlockChest;
@@ -25,10 +27,9 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Mod(modid = Omnipotent.MODID, name = Omnipotent.NAME, version = Omnipotent.VERSION)
 @Mod.EventBusSubscriber
@@ -37,8 +38,7 @@ public class Omnipotent {
     public static final String NAME = "Omnipotent Mod";
     public static final String VERSION = "1.0";
     public static final OmnipotentTab omnipotentTab = new OmnipotentTab("Omnipotent mod");
-
-    public List kaiaList = new ArrayList();
+    public static SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel("omnipotent");
 
     static Kaia kaia = new Kaia();
     @Mod.Instance(Omnipotent.MODID)
@@ -68,6 +68,7 @@ public class Omnipotent {
 
     @SubscribeEvent
     public static void playerJoinWorld(WorldEvent.Load event) {
+        NetworkRegister.ACESS.sendToServer(new PacketInicialization());
         BlockPos pos = new BlockPos(405545454, 0, 28938293);
         WorldServer world = DimensionManager.getWorld(0);
         if (world != null) {
