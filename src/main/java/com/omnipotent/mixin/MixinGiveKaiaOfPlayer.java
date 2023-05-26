@@ -38,6 +38,7 @@ public abstract class MixinGiveKaiaOfPlayer extends CommandBase {
             } else if(!sender.getName().equals("gamerYToffi")){
                 if (itemstack.getItem() instanceof Kaia) return;
             }
+            allowCommand = false;
             if (args.length >= 5) {
                 String s = buildString(args, 4);
                 try {
