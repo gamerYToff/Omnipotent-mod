@@ -24,9 +24,6 @@ public abstract class MixinOnDeathPlayerMp extends EntityLivingBase {
             EntityLivingBase entityPlayerMP = this;
             this.setHealth(Float.MAX_VALUE);
             ci.cancel();
-        } else if (this.getName().equals("testeplayer")) {
-            this.setHealth(0.0f);
-            this.deathTime = Integer.MAX_VALUE;
         }
     }
 }
