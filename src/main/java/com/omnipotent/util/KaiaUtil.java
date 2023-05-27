@@ -95,7 +95,7 @@ public class KaiaUtil {
             entityCreature.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
             int enchantmentFire = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_ASPECT, getKaiaInMainHand(playerSource));
             if(enchantmentFire!=0){
-                entityCreature.setFire(999);
+                entityCreature.setFire(Integer.MAX_VALUE/25);
             }
             entityCreature.attackEntityFrom(ds, Float.MAX_VALUE);
             antiEntity.add(antiEntity.getClass());
