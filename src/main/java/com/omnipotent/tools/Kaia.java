@@ -79,6 +79,8 @@ public class Kaia extends ItemPickaxe {
         if(!stack.getTagCompound().hasKey("ench")){
             Map<Enchantment, Integer> enchantments = new HashMap();
             enchantments.put(Enchantments.FORTUNE, 64);
+            enchantments.put(Enchantments.FIRE_ASPECT, 64);
+            enchantments.put(Enchantments.LOOTING, 64);
             EnchantmentHelper.setEnchantments(enchantments, stack);
         }
         if (!stack.getTagCompound().hasKey(blockBreakArea) || stack.getTagCompound().getInteger(blockBreakArea) < 1) {
