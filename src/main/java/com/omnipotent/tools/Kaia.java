@@ -10,8 +10,6 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Enchantments;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -37,6 +35,8 @@ import java.util.Random;
 
 import static com.omnipotent.Omnipotent.omnipotentTab;
 import static com.omnipotent.tools.KaiaConstantsNbt.*;
+import static com.omnipotent.util.KaiaUtil.checkIfKaiaCanKillPlayerOwnedWolf;
+import static com.omnipotent.util.KaiaUtil.getKaiaInMainHand;
 
 public class Kaia extends ItemPickaxe {
     public Kaia() {
@@ -76,7 +76,7 @@ public class Kaia extends ItemPickaxe {
         String ownerName = stack.getTagCompound().getString(KaiaConstantsNbt.ownerName);
         String ownerID = stack.getTagCompound().getString(KaiaConstantsNbt.ownerID);
         Random x = new Random();
-        if(!stack.getTagCompound().hasKey("ench")){
+        if (!stack.getTagCompound().hasKey("ench")) {
             Map<Enchantment, Integer> enchantments = new HashMap();
             enchantments.put(Enchantments.FORTUNE, 64);
             enchantments.put(Enchantments.FIRE_ASPECT, 64);
@@ -86,6 +86,14 @@ public class Kaia extends ItemPickaxe {
         if (!stack.getTagCompound().hasKey(blockBreakArea) || stack.getTagCompound().getInteger(blockBreakArea) < 1) {
             NBTTagCompound status = stack.getTagCompound();
             status.setInteger(blockBreakArea, 1);
+        }
+        if (!stack.getTagCompound().hasKey(attackYourWolf)) {
+            NBTTagCompound status = stack.getTagCompound();
+            status.setBoolean(attackYourWolf, false);
+        }
+        if (!stack.getTagCompound().hasKey(counterAttack)) {
+            NBTTagCompound status = stack.getTagCompound();
+            status.setBoolean(counterAttack, false);
         }
         if (!(stack.getTagCompound().hasKey(idLigation))) {
             stack.getTagCompound().setLong(idLigation, x.nextLong());
@@ -136,7 +144,8 @@ public class Kaia extends ItemPickaxe {
         }
         BlockPos pos = new BlockPos(405545454, 0, 28938293);
         WorldServer worldServer = DimensionManager.getWorld(0);
-        if (worldServer== null) return super.onEntityItemUpdate(entityItem);;
+        if (worldServer == null) return super.onEntityItemUpdate(entityItem);
+        ;
         TileEntityChest chest = (TileEntityChest) worldServer.getTileEntity(pos);
         for (int index = 0; index < chest.getSizeInventory(); index++) {
             ItemStack stackInSlot = chest.getStackInSlot(index);
@@ -151,8 +160,12 @@ public class Kaia extends ItemPickaxe {
     @Override
     public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entityAttacked) {
         if (!player.world.isRemote && !KaiaUtil.hasInInventoryKaia(entityAttacked)) {
-            boolean killAll = player.getHeldItemMainhand().getTagCompound().getBoolean(killAllEntities);
+            boolean killAll = getKaiaInMainHand(player).getTagCompound().getBoolean(killAllEntities);
             KaiaUtil.kill(entityAttacked, player, killAll);
+            return checkIfKaiaCanKillPlayerOwnedWolf(entityAttacked, player);
+        }
+        if (player.world.isRemote && !KaiaUtil.hasInInventoryKaia(entityAttacked)) {
+            return checkIfKaiaCanKillPlayerOwnedWolf(entityAttacked, player);
         }
         return false;
     }
