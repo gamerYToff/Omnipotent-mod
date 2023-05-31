@@ -5,6 +5,9 @@ import com.omnipotent.tools.Kaia;
 import com.omnipotent.tools.KaiaConstantsNbt;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.BlockStaticLiquid;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -92,7 +95,7 @@ public class KaiaUtil {
     }
 
     public static void kill(Entity entity, EntityPlayer playerSource, boolean killAllEntities) {
-        boolean attackYourWolf = getKaiaInMainHand(playerSource).getTagCompound().getBoolean(KaiaConstantsNbt.attackYourWolf);
+        boolean attackYourWolf = getKaiaInInventory(playerSource).getTagCompound().getBoolean(KaiaConstantsNbt.attackYourWolf);
         if (!attackYourWolf) {
             if (entity instanceof EntityWolf && ((EntityWolf) entity).isOwner(playerSource))
                 return;
@@ -101,7 +104,7 @@ public class KaiaUtil {
             EntityLivingBase entityCreature = (EntityLivingBase) entity;
             DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
             entityCreature.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
-            int enchantmentFire = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_ASPECT, getKaiaInMainHand(playerSource));
+            int enchantmentFire = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_ASPECT, getKaiaInInventory(playerSource));
             if (enchantmentFire != 0) {
                 entityCreature.setFire(Integer.MAX_VALUE / 25);
             }
@@ -287,6 +290,8 @@ public class KaiaUtil {
     public static ItemStack getKaiaInInventory(EntityPlayer player) throws RuntimeException {
         if (!player.inventory.offHandInventory.isEmpty() && player.inventory.offHandInventory.get(0).getItem() instanceof Kaia)
             return player.inventory.offHandInventory.get(0);
+        if (!player.getHeldItemMainhand().isEmpty() && player.getHeldItemMainhand().getItem() instanceof Kaia)
+            return player.getHeldItemMainhand();
         for (ItemStack itemStack : player.inventory.mainInventory) {
             if (!itemStack.isEmpty() && itemStack.getItem() instanceof Kaia)
                 return itemStack;

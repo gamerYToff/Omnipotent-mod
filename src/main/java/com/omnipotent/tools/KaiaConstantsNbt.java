@@ -11,5 +11,7 @@ public class KaiaConstantsNbt {
     public static final String PositionKaiaEntityItem = "PositionKaiaEntityItem";
     public static final String idLigation = "idLigation";
     public static final String attackYourWolf = "attackYourWolf";
+    public static final String interactLiquid = "interactLiquid";
+
 
 }

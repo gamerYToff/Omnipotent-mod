@@ -17,6 +17,7 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -86,6 +87,10 @@ public class Kaia extends ItemPickaxe {
         if (!stack.getTagCompound().hasKey(blockBreakArea) || stack.getTagCompound().getInteger(blockBreakArea) < 1) {
             NBTTagCompound status = stack.getTagCompound();
             status.setInteger(blockBreakArea, 1);
+        }
+        if (!stack.getTagCompound().hasKey(interactLiquid)) {
+            NBTTagCompound status = stack.getTagCompound();
+            status.setBoolean(interactLiquid, false);
         }
         if (!stack.getTagCompound().hasKey(attackYourWolf)) {
             NBTTagCompound status = stack.getTagCompound();

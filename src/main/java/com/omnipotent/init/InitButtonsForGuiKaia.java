@@ -16,8 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.omnipotent.tools.KaiaConstantsNbt.attackYourWolf;
-import static com.omnipotent.tools.KaiaConstantsNbt.blockBreakArea;
+import static com.omnipotent.tools.KaiaConstantsNbt.*;
 import static com.omnipotent.util.KaiaUtil.getKaiaInMainHand;
 
 public class InitButtonsForGuiKaia {
@@ -64,6 +63,7 @@ public class InitButtonsForGuiKaia {
         namesOfButtons.add("killallentities");
         namesOfButtons.add("counterattack");
         namesOfButtons.add("attackyourwolf");
+        namesOfButtons.add("interactliquid");
     }
 
     public void drawButtons(Minecraft instance, int mouseX, int mouseY, int partialTicks) {
@@ -82,6 +82,7 @@ public class InitButtonsForGuiKaia {
         textButtonList.add(String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.killAllEntities)));
         textButtonList.add(String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.counterAttack)));
         textButtonList.add(String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.attackYourWolf)));
+        textButtonList.add(String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.interactLiquid)));
     }
 
     private void setButtonList(EntityPlayer player) {
@@ -89,6 +90,7 @@ public class InitButtonsForGuiKaia {
         buttonsList.add(new GuiButton(++buttonID, width / 2 - 62, height / 2 - 19, 30, 15, String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.killAllEntities))));
         buttonsList.add(new GuiButton(++buttonID, width / 2 - 115, height / 2 - -20, 30, 15, String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.counterAttack))));
         buttonsList.add(new GuiButton(++buttonID, width / 2 - 115, height / 2 - -40, 30, 15, String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.attackYourWolf))));
+        buttonsList.add(new GuiButton(++buttonID, width / 2 - 50, height / 2 - -60, 30, 15, String.valueOf(getKaiaInMainHand(player).getTagCompound().getBoolean(KaiaConstantsNbt.interactLiquid))));
     }
 
     private void setGuiButtonList() {
@@ -114,6 +116,7 @@ public class InitButtonsForGuiKaia {
         fontRenderer.drawString("Distancia de interacao com os blocos", width / 2 - 200, height / 2 - -5, Color.WHITE.getRGB());
         fontRenderer.drawString("Contra atacar", width / 2 - 200, height / 2 - -25, Color.WHITE.getRGB());
         fontRenderer.drawString("Atacar seu lobo", width / 2 - 200, height / 2 - -45, Color.WHITE.getRGB());
+        fontRenderer.drawString("Interagir com blocos liquidos", width / 2 - 200, height / 2 - -65, Color.WHITE.getRGB());
     }
 
     private void setNamesOfGuiTextList() {
@@ -170,6 +173,13 @@ public class InitButtonsForGuiKaia {
             public void run() {
                 boolean value = getKaiaInMainHand(player).getTagCompound().getBoolean(attackYourWolf);
                 NetworkRegister.ACESS.sendToServer(new KaiaNbtPacket(attackYourWolf, !value));
+            }
+        });
+        functionsForButtonsList.put(buttonsList.get(++id), new Runnable() {
+            @Override
+            public void run() {
+                boolean value = getKaiaInMainHand(player).getTagCompound().getBoolean(interactLiquid);
+                NetworkRegister.ACESS.sendToServer(new KaiaNbtPacket(interactLiquid, !value));
             }
         });
     }
