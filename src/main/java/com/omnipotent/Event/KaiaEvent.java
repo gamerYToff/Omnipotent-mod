@@ -3,10 +3,7 @@ package com.omnipotent.Event;
 import com.omnipotent.network.KillPacket;
 import com.omnipotent.network.NetworkRegister;
 import com.omnipotent.network.SummonLightEasterEggPacket;
-import com.omnipotent.tools.KaiaConstantsNbt;
-import com.omnipotent.util.KaiaUtil;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.passive.EntityWolf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -19,8 +16,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import static com.omnipotent.tools.KaiaConstantsNbt.counterAttack;
-import static com.omnipotent.tools.KaiaConstantsNbt.killAllEntities;
 import static com.omnipotent.util.KaiaUtil.*;
 
 public class KaiaEvent {
@@ -68,9 +63,6 @@ public class KaiaEvent {
             if (hasInInventoryKaia(player)) {
                 player.setHealth(Integer.MAX_VALUE);
                 event.setCanceled(true);
-                if (getKaiaInInventory(player).getTagCompound().getBoolean(counterAttack)) {
-                    KaiaUtil.kill(event.getSource().getTrueSource(), player, getKaiaInInventory(player).getTagCompound().getBoolean(killAllEntities));
-                }
             } else if (isPlayer(event.getSource().getTrueSource()) && withKaiaMainHand((EntityPlayer) event.getSource().getTrueSource())) {
                 event.setCanceled(false);
                 event.getEntityLiving().setHealth(0.0f);

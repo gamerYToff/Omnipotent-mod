@@ -5,16 +5,12 @@ import com.omnipotent.tools.Kaia;
 import com.omnipotent.tools.KaiaConstantsNbt;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
-import net.minecraft.block.BlockLiquid;
-import net.minecraft.block.BlockStaticLiquid;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityTNTPrimed;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.monster.EntityGolem;
 import net.minecraft.entity.monster.EntitySnowman;
@@ -46,6 +42,7 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.omnipotent.tools.KaiaConstantsNbt.*;
@@ -71,7 +68,7 @@ public class KaiaUtil {
     public static void killArea(EntityLivingBase player) {
         EntityPlayer playerSource = (EntityPlayer) player;
         World world = playerSource.world;
-        List<Entity> entities = Lists.newCopyOnWriteArrayList();
+        List<Entity> entities = Lists.newArrayList();
         int range = getKaiaInMainHand(playerSource).getTagCompound().getInteger(rangeAttack);
         boolean killAllEntities = getKaiaInMainHand(playerSource).getTagCompound().getBoolean(KaiaConstantsNbt.killAllEntities);
         boolean killFriendEntities = getKaiaInMainHand(playerSource).getTagCompound().getBoolean(KaiaConstantsNbt.killFriendEntities);
@@ -86,6 +83,20 @@ public class KaiaUtil {
             entities.addAll(list);
         }
         entities.removeIf(entity -> isPlayer(entity) && hasInInventoryKaia((EntityPlayer) entity));
+        List<String> idEntitiesList = new ArrayList<>();
+        Iterator<Entity> entityIterator = entities.iterator();
+        while (entityIterator.hasNext()) {
+            Entity nextEntity = entityIterator.next();
+            if (idEntitiesList != null) {
+                if (idEntitiesList.contains(nextEntity.getUniqueID().toString())) {
+                    entityIterator.remove();
+                } else {
+                    idEntitiesList.add(nextEntity.getUniqueID().toString());
+                }
+            } else {
+                idEntitiesList.add(nextEntity.getUniqueID().toString());
+            }
+        }
         if (!killFriendEntities) {
             entities.removeIf(entity -> entity instanceof EntityBat || entity instanceof EntitySquid || entity instanceof EntityAgeable || entity instanceof EntityAnimal || entity instanceof EntitySnowman || entity instanceof EntityGolem);
         }
@@ -127,8 +138,7 @@ public class KaiaUtil {
             }
             playerEnemie.onDeath(ds);
         } else if (killAllEntities) {
-            if (!(entity instanceof EntityTNTPrimed))
-                entity.setDead();
+            entity.setDead();
         }
     }
 
