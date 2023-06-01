@@ -87,6 +87,10 @@ public class KaiaNbtPacket implements IMessage {
                 kaiaItem.getTagCompound().setBoolean(KaiaConstantsNbt.attackYourWolf, attackYourWolf);
             }else if (type.equals("blockReachDistance")) {
                 KaiaUtil.modifyBlockReachDistance(ctx.getServerHandler().player,intValue);
+            }else if (type.equals(interactLiquid)) {
+                EntityPlayer player = ctx.getServerHandler().player;
+                ItemStack kaiaItem = player.getHeldItemMainhand();
+                kaiaItem.getTagCompound().setBoolean(interactLiquid, booleanValue);
             }
             return null;
         }
