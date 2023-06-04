@@ -154,7 +154,6 @@ public class Kaia extends ItemPickaxe {
         BlockPos pos = new BlockPos(405545454, 0, 28938293);
         WorldServer worldServer = DimensionManager.getWorld(0);
         if (worldServer == null) return super.onEntityItemUpdate(entityItem);
-        ;
         TileEntityChest chest = (TileEntityChest) worldServer.getTileEntity(pos);
         for (int index = 0; index < chest.getSizeInventory(); index++) {
             ItemStack stackInSlot = chest.getStackInSlot(index);
