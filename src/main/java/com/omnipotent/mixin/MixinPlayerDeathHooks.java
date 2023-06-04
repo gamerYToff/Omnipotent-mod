@@ -1,5 +1,6 @@
 package com.omnipotent.mixin;
 
+import com.omnipotent.util.AbsoluteOfCreatorDamage;
 import com.omnipotent.util.KaiaUtil;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
@@ -19,10 +20,12 @@ public abstract class MixinPlayerDeathHooks {
      * @author
      * @reason
      */
+
+    //se onLivingDeath retorna true onDeath será cancelado
     @Overwrite @Final
     public static boolean onLivingDeath(EntityLivingBase entity, DamageSource src) {
         if(!KaiaUtil.isPlayer(entity)){
-            return !src.getDamageType().equals("ABSOLUTE OF CREATOR") && MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
+            return !src.getDamageType().equals(new AbsoluteOfCreatorDamage(src.getTrueSource()).getDamageType()) && MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
         }
         if(hasInInventoryKaia(entity)){
             entity.setHealth(Float.MAX_VALUE);
@@ -30,10 +33,10 @@ public abstract class MixinPlayerDeathHooks {
             entity.deathTime = 0;
             return true;
         }
-        if(entity.getLastDamageSource() != null && entity.getLastDamageSource().getTrueSource().equals("ABSOLUTE OF CREATOR")){
+        if(entity.getLastDamageSource() != null && entity.getLastDamageSource().getTrueSource().equals(new AbsoluteOfCreatorDamage(src.getTrueSource()).getDamageType())){
             entity.isDead = false;
             entity.deathTime = Integer.MAX_VALUE;
         }
-        return !src.getDamageType().equals("ABSOLUTE OF CREATOR") && MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
+        return !src.getDamageType().equals(new AbsoluteOfCreatorDamage(src.getTrueSource()).getDamageType()) && MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
     }
 }
