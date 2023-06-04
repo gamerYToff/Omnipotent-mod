@@ -91,6 +91,10 @@ public class KaiaNbtPacket implements IMessage {
                 EntityPlayer player = ctx.getServerHandler().player;
                 ItemStack kaiaItem = player.getHeldItemMainhand();
                 kaiaItem.getTagCompound().setBoolean(interactLiquid, booleanValue);
+            }else if (type.equals(noBreakTileEntity)) {
+                EntityPlayer player = ctx.getServerHandler().player;
+                ItemStack kaiaItem = player.getHeldItemMainhand();
+                kaiaItem.getTagCompound().setBoolean(noBreakTileEntity, booleanValue);
             }
             return null;
         }
