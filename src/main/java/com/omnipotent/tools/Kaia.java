@@ -88,6 +88,10 @@ public class Kaia extends ItemPickaxe {
             NBTTagCompound status = stack.getTagCompound();
             status.setInteger(blockBreakArea, 1);
         }
+        if (!stack.getTagCompound().hasKey(noBreakTileEntity)) {
+            NBTTagCompound status = stack.getTagCompound();
+            status.setBoolean(noBreakTileEntity, false);
+        }
         if (!stack.getTagCompound().hasKey(interactLiquid)) {
             NBTTagCompound status = stack.getTagCompound();
             status.setBoolean(interactLiquid, false);
