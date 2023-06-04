@@ -111,20 +111,7 @@ public class KaiaUtil {
             if (entity instanceof EntityWolf && ((EntityWolf) entity).isOwner(playerSource))
                 return;
         }
-        if (entity instanceof EntityLivingBase && !(entity.world.isRemote || entity.isDead || ((EntityLivingBase) entity).getHealth() == 0.0F)) {
-            EntityLivingBase entityCreature = (EntityLivingBase) entity;
-            DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
-            entityCreature.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
-            int enchantmentFire = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_ASPECT, getKaiaInInventory(playerSource));
-            if (enchantmentFire != 0) {
-                entityCreature.setFire(Integer.MAX_VALUE / 25);
-            }
-            entityCreature.attackEntityFrom(ds, Float.MAX_VALUE);
-            antiEntity.add(antiEntity.getClass());
-            entityCreature.onDeath(ds);
-            antiEntity.remove(antiEntity.getClass());
-            entityCreature.setHealth(0.0F);
-        } else if (entity instanceof EntityPlayer && !hasInInventoryKaia(entity)) {
+        if (entity instanceof EntityPlayer && !hasInInventoryKaia(entity)) {
             EntityPlayer playerEnemie = (EntityPlayer) entity;
             DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
             playerEnemie.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
@@ -137,6 +124,19 @@ public class KaiaUtil {
                 playerEnemie.onEntityUpdate();
             }
             playerEnemie.onDeath(ds);
+        } else if (entity instanceof EntityLivingBase && !(entity.world.isRemote || entity.isDead || ((EntityLivingBase) entity).getHealth() == 0.0F)) {
+            EntityLivingBase entityCreature = (EntityLivingBase) entity;
+            DamageSource ds = new AbsoluteOfCreatorDamage(playerSource);
+            entityCreature.getCombatTracker().trackDamage(ds, Float.MAX_VALUE, Float.MAX_VALUE);
+            int enchantmentFire = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_ASPECT, getKaiaInInventory(playerSource));
+            if (enchantmentFire != 0) {
+                entityCreature.setFire(Integer.MAX_VALUE / 25);
+            }
+            entityCreature.attackEntityFrom(ds, Float.MAX_VALUE);
+            antiEntity.add(antiEntity.getClass());
+            entityCreature.onDeath(ds);
+            antiEntity.remove(antiEntity.getClass());
+            entityCreature.setHealth(0.0F);
         } else if (killAllEntities) {
             entity.setDead();
         }
