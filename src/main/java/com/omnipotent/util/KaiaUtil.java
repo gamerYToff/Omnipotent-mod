@@ -169,6 +169,12 @@ public class KaiaUtil {
         int endY = centerPos.getY() + areaBlock / 2;
         float xp = 0f;
         xp += breakBlockIfDropsIsEmpty((EntityPlayerMP) player, centerPos);
+        if (getKaiaInMainHand(player).getTagCompound().getBoolean(noBreakTileEntity)) {
+            if (checkTheAreaForTileEntityBlock(startX, startY, startZ, endX, endY, endZ, player.world)) {
+                world.spawnEntity(new EntityXPOrb(player.world, centerPos.getX() + 0.5, centerPos.getY() + 0.5, centerPos.getZ() + 0.5, (int) xp));
+                return;
+            }
+        }
         for (int x = startX; x <= endX; x++) {
             for (int z = startZ; z <= endZ; z++) {
                 for (int y = startY; y <= endY; y++) {
@@ -180,6 +186,14 @@ public class KaiaUtil {
             }
         }
         world.spawnEntity(new EntityXPOrb(player.world, centerPos.getX() + 0.5, centerPos.getY() + 0.5, centerPos.getZ() + 0.5, (int) xp));
+    }
+
+    private static boolean checkTheAreaForTileEntityBlock(int startX, int startY, int startZ, int endX, int endY, int endZ, World world) {
+        BlockPos startBlockPos = new BlockPos(startX, startY, startZ);
+        for (BlockPos blockPos : BlockPos.getAllInBox(startBlockPos, new BlockPos(endX, endY, endZ))) {
+            if (world.getBlockState(blockPos).getBlock().hasTileEntity(world.getBlockState(blockPos))) return true;
+        }
+        return false;
     }
 
     public static float breakBlockIfDropsIsEmpty(EntityPlayerMP player, BlockPos pos) {
