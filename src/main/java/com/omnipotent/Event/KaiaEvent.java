@@ -3,11 +3,14 @@ package com.omnipotent.Event;
 import com.omnipotent.network.KillPacket;
 import com.omnipotent.network.NetworkRegister;
 import com.omnipotent.network.SummonLightEasterEggPacket;
+import com.omnipotent.tools.KaiaConstantsNbt;
+import com.omnipotent.util.KaiaUtil;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -39,19 +42,6 @@ public class KaiaEvent {
             if (hasInInventoryKaia(player)) {
                 player.setHealth(Integer.MAX_VALUE);
                 event.setCanceled(true);
-            } else if (event.getSource().getTrueSource() != null && isPlayer(event.getSource().getTrueSource()) && withKaiaMainHand((EntityPlayer) event.getSource().getTrueSource())) {
-                EntityPlayer entityTarget = (EntityPlayer) event.getEntityLiving();
-                if (event.isCanceled()) {
-                    event.setCanceled(false);
-                    entityTarget.setHealth(0.0f);
-                    entityTarget.inventory.dropAllItems();
-                    if (entityTarget.getHeldItemOffhand() != null) {
-                        ItemStack item = entityTarget.getHeldItemOffhand().copy();
-                        entityTarget.setHeldItem(EnumHand.OFF_HAND, null);
-                        player.world.spawnEntity(new EntityItem(player.world, player.posX, player.posY, player.posZ, item));
-                    }
-                }
-                event.setCanceled(false);
             }
         }
     }
@@ -63,20 +53,12 @@ public class KaiaEvent {
             if (hasInInventoryKaia(player)) {
                 player.setHealth(Integer.MAX_VALUE);
                 event.setCanceled(true);
-            } else if (isPlayer(event.getSource().getTrueSource()) && withKaiaMainHand((EntityPlayer) event.getSource().getTrueSource())) {
-                event.setCanceled(false);
-                event.getEntityLiving().setHealth(0.0f);
-            }
-        }
-    }
-
-    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.LOWEST)
-    public void damageEvent(LivingAttackEvent event) {
-        if (isPlayer(event.getEntityLiving())) {
-            EntityPlayer player = (EntityPlayer) event.getEntityLiving();
-            if (hasInInventoryKaia(player)) {
-                player.setHealth(Integer.MAX_VALUE);
-                event.setCanceled(true);
+                NBTTagCompound tagCompoundOfKaia = getKaiaInInventory(player).getTagCompound();
+                if (tagCompoundOfKaia.getBoolean(KaiaConstantsNbt.counterAttack)) {
+                    if(!isPlayer(event.getSource().getTrueSource()) || (isPlayer(event.getSource().getTrueSource()) && !hasInInventoryKaia(event.getSource().getTrueSource())) ){
+                        KaiaUtil.kill(event.getSource().getTrueSource(), player, tagCompoundOfKaia.getBoolean(KaiaConstantsNbt.killAllEntities));
+                    }
+                }
             }
         }
     }
@@ -87,16 +69,6 @@ public class KaiaEvent {
             event.setCanceled(true);
         } else if (isPlayer(event.getSource().getTrueSource()) && withKaiaMainHand((EntityPlayer) event.getSource().getTrueSource())) {
             event.setCanceled(false);
-        }
-    }
-
-    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.LOWEST)
-    public void attackLiving(LivingAttackEvent event) {
-        if (isPlayer(event.getEntity()) && hasInInventoryKaia((EntityPlayer) event.getEntity())) {
-            event.setCanceled(true);
-        } else if (isPlayer(event.getSource().getTrueSource()) && withKaiaMainHand((EntityPlayer) event.getSource().getTrueSource())) {
-            event.setCanceled(false);
-            event.getEntityLiving().setHealth(0.0f);
         }
     }
 
